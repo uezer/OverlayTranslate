@@ -1,0 +1,78 @@
+<Window x:Class="OverlayTranslate.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ShowActivated="True"
+        Topmost="True"
+        Focusable="True"
+        WindowStartupLocation="Manual"
+        Cursor="Cross"
+        KeyDown="OnWindowKeyDown"
+        PreviewKeyDown="OnWindowKeyDown"
+        MouseRightButtonUp="OnMouseRightButtonUp"
+        PreviewMouseRightButtonUp="OnMouseRightButtonUp"
+        MouseLeftButtonDown="OnMouseLeftButtonDown"
+        MouseMove="OnMouseMove"
+        MouseLeftButtonUp="OnMouseLeftButtonUp">
+    <Grid>
+        <Image x:Name="ScreenshotImage"
+               Stretch="Fill" />
+
+        <Canvas x:Name="OverlayCanvas">
+            <Rectangle x:Name="MaskTop"
+                       Fill="#9A1F2937" />
+            <Rectangle x:Name="MaskLeft"
+                       Fill="#9A1F2937" />
+            <Rectangle x:Name="MaskRight"
+                       Fill="#9A1F2937" />
+            <Rectangle x:Name="MaskBottom"
+                       Fill="#9A1F2937" />
+
+            <Border x:Name="SelectionBorder"
+                    BorderBrush="#FF60A5FA"
+                    BorderThickness="2"
+                    Background="#153B82F6"
+                    Visibility="Collapsed" />
+
+            <Border x:Name="StatusBadge"
+                    Background="#E6111827"
+                    CornerRadius="8"
+                    Padding="10,6"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="StatusText"
+                           Foreground="White"
+                           FontSize="14"
+                           FontWeight="SemiBold" />
+            </Border>
+
+            <Border x:Name="Toolbar"
+                    Background="#F8FFFFFF"
+                    BorderBrush="#220F172A"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="8"
+                    Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="RetryButton"
+                            Margin="0,0,8,0"
+                            Padding="12,6"
+                            Content="重新翻译"
+                            Click="OnRetryClick" />
+                    <Button x:Name="ReselectButton"
+                            Margin="0,0,8,0"
+                            Padding="12,6"
+                            Content="重选"
+                            Click="OnReselectClick" />
+                    <Button x:Name="ExitButton"
+                            Padding="12,6"
+                            Content="退出"
+                            Click="OnExitClick" />
+                </StackPanel>
+            </Border>
+        </Canvas>
+    </Grid>
+</Window>
