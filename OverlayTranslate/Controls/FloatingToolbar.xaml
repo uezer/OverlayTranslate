@@ -1,0 +1,45 @@
+<UserControl x:Class="OverlayTranslate.Controls.FloatingToolbar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="120" d:DesignWidth="400">
+    <Border Background="#F0F0F0" CornerRadius="6" Padding="8"
+            BorderBrush="#CCCCCC" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3" />
+        </Border.Effect>
+        <StackPanel>
+            <!-- 第一行：语言选择 -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="原语言:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <ComboBox x:Name="SourceLanguageComboBox" Width="100" Margin="0,0,8,0" />
+                <TextBlock Text="目标语言:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <ComboBox x:Name="TargetLanguageComboBox" Width="100" />
+            </StackPanel>
+
+            <!-- 第二行：引擎选择 -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <TextBlock Text="OCR引擎:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <ComboBox x:Name="OcrEngineComboBox" Width="100" Margin="0,0,8,0" />
+                <TextBlock Text="翻译引擎:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <ComboBox x:Name="TranslationEngineComboBox" Width="100" />
+            </StackPanel>
+
+            <!-- 第三行：操作按钮 -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="ReselectButton" Content="重选" Margin="0,0,6,0"
+                        Click="OnReselectClick" Padding="12,4" />
+                <Button x:Name="ShowOriginalButton" Content="显示原文" Margin="0,0,6,0"
+                        Click="OnShowOriginalClick" Padding="12,4" />
+                <Button x:Name="CopyOriginalButton" Content="复制原文" Margin="0,0,6,0"
+                        Click="OnCopyOriginalClick" Padding="12,4" />
+                <Button x:Name="CopyTranslatedButton" Content="复制译文" Margin="0,0,6,0"
+                        Click="OnCopyTranslatedClick" Padding="12,4" />
+                <Button x:Name="ExitButton" Content="退出" Margin="0,0,0,0"
+                        Click="OnExitClick" Padding="12,4" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

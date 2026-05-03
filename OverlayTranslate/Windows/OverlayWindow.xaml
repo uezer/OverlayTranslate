@@ -1,0 +1,17 @@
+<Window x:Class="OverlayTranslate.Windows.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:OverlayTranslate.Controls"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowState="Maximized">
+    <Grid x:Name="RootGrid">
+        <Image x:Name="BackgroundImage" Stretch="Uniform" />
+        <controls:MaskLayer x:Name="Mask" />
+        <controls:SelectionCanvas x:Name="SelectionLayer" />
+        <controls:FloatingToolbar x:Name="Toolbar" Visibility="Collapsed" />
+    </Grid>
+</Window>
