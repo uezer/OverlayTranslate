@@ -25,10 +25,7 @@ public class StyleAnalyzer
                 break;
             case "fit-width":
                 fontSize = baseFontSize > 0 ? baseFontSize : boundingBox.Height * 0.75;
-                var charWidth = fontSize * 0.6;
-                var totalWidth = charWidth * text.Length;
-                if (totalWidth > boundingBox.Width)
-                    fontSize = Math.Max(8, fontSize * (boundingBox.Width / totalWidth));
+                fontSize = ScaleFontSizeToFit(fontSize, boundingBox.Width, text.Length);
                 break;
             default: // "auto"
                 fontSize = baseFontSize > 0 ? baseFontSize : boundingBox.Height * 0.75;
@@ -57,16 +54,15 @@ public class StyleAnalyzer
 
     public double AdjustFontSize(string translatedText, TextStyleInfo originalStyle)
     {
-        var originalLength = translatedText.Length;
-        if (originalLength == 0) return originalStyle.FontSize;
+        if (translatedText.Length == 0) return originalStyle.FontSize;
+        return ScaleFontSizeToFit(originalStyle.FontSize, originalStyle.RegionWidth, translatedText.Length);
+    }
 
-        var charWidth = originalStyle.FontSize * 0.6;
-        var totalWidth = charWidth * originalLength;
-
-        if (totalWidth <= originalStyle.RegionWidth)
-            return originalStyle.FontSize;
-
-        var ratio = originalStyle.RegionWidth / totalWidth;
-        return Math.Max(8, originalStyle.FontSize * ratio);
+    private static double ScaleFontSizeToFit(double fontSize, double width, int textLength)
+    {
+        var charWidth = fontSize * 0.6;
+        var totalWidth = charWidth * textLength;
+        if (totalWidth <= width) return fontSize;
+        return Math.Max(8, fontSize * (width / totalWidth));
     }
 }
