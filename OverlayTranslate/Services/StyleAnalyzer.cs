@@ -31,7 +31,7 @@ public class StyleAnalyzer
                 fontSize = baseFontSize > 0 ? baseFontSize : boundingBox.Height * 0.75;
                 break;
         }
-        fontSize = Math.Max(8, Math.Min(72, fontSize));
+        fontSize = Math.Max(8, fontSize);
 
         // 根据背景亮度自动选择文字颜色：深色背景用白字，浅色背景用黑字
         var textColor = Colors.Black;

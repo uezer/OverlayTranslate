@@ -1,0 +1,140 @@
+<h2>插件化引擎架构</h2>
+<p class="subtitle">OCR 和翻译引擎的接口设计与加载机制</p>
+
+<div class="mockup">
+  <div class="mockup-header">引擎接口定义</div>
+  <div class="mockup-body">
+    <div style="display: flex; gap: 20px;">
+      <!-- OCR Interface -->
+      <div style="flex: 1;">
+        <h3 style="margin-bottom: 12px;">IOcrEngine</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+          <div style="color: var(--accent);">interface IOcrEngine</div>
+          <div style="padding-left: 16px;">
+            <div>├─ <span style="color: var(--success);">Name</span>: string</div>
+            <div>├─ <span style="color: var(--success);">IsAvailable</span>: bool</div>
+            <div>├─ <span style="color: var(--warning);">RecognizeAsync</span>(image, options)</div>
+            <div>│   └─ → OcrResult</div>
+            <div>└─ <span style="color: var(--warning);">GetSupportedLanguages</span>()</div>
+            <div style="padding-left: 16px;">└─ → string[]</div>
+          </div>
+        </div>
+        <div style="margin-top: 12px; background: var(--bg-tertiary); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+          <div style="color: var(--accent);">class OcrResult</div>
+          <div style="padding-left: 16px;">
+            <div>├─ <span style="color: var(--success);">TextBlocks</span>: List&lt;TextBlock&gt;</div>
+            <div>├─ <span style="color: var(--success);">FullText</span>: string</div>
+            <div>└─ <span style="color: var(--success);">Language</span>: string</div>
+          </div>
+        </div>
+        <div style="margin-top: 12px; background: var(--bg-tertiary); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+          <div style="color: var(--accent);">class TextBlock</div>
+          <div style="padding-left: 16px;">
+            <div>├─ <span style="color: var(--success);">Text</span>: string</div>
+            <div>├─ <span style="color: var(--success);">BoundingBox</span>: Rect</div>
+            <div>├─ <span style="color: var(--success);">Confidence</span>: float</div>
+            <div>└─ <span style="color: var(--success);">Angle</span>: float</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Translation Interface -->
+      <div style="flex: 1;">
+        <h3 style="margin-bottom: 12px;">ITranslationEngine</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+          <div style="color: var(--accent);">interface ITranslationEngine</div>
+          <div style="padding-left: 16px;">
+            <div>├─ <span style="color: var(--success);">Name</span>: string</div>
+            <div>├─ <span style="color: var(--success);">IsAvailable</span>: bool</div>
+            <div>├─ <span style="color: var(--warning);">TranslateAsync</span>(text, from, to)</div>
+            <div>│   └─ → TranslationResult</div>
+            <div>└─ <span style="color: var(--warning);">GetSupportedLanguages</span>()</div>
+            <div style="padding-left: 16px;">└─ → string[]</div>
+          </div>
+        </div>
+        <div style="margin-top: 12px; background: var(--bg-tertiary); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+          <div style="color: var(--accent);">class TranslationResult</div>
+          <div style="padding-left: 16px;">
+            <div>├─ <span style="color: var(--success);">TranslatedText</span>: string</div>
+            <div>├─ <span style="color: var(--success);">SourceLanguage</span>: string</div>
+            <div>└─ <span style="color: var(--success);">EngineName</span>: string</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">引擎注册与发现机制</div>
+  <div class="mockup-body">
+    <div style="display: flex; gap: 20px; align-items: flex-start;">
+      <div style="flex: 1;">
+        <h3 style="margin-bottom: 8px;">加载流程</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; font-size: 13px; line-height: 2;">
+          <div>1. 启动时扫描 <code>Engines/</code> 目录</div>
+          <div>2. 通过 DI 注册所有引擎实现</div>
+          <div>3. 读取 JSON 配置中的用户选择</div>
+          <div>4. 按优先级排序引擎列表</div>
+          <div>5. 运行时按策略选择引擎</div>
+        </div>
+      </div>
+      <div style="flex: 1;">
+        <h3 style="margin-bottom: 8px;">选择策略</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; font-size: 13px; line-height: 2;">
+          <div><strong>仅本地：</strong>只使用本地引擎</div>
+          <div><strong>本地优先：</strong>本地失败时回退远程</div>
+          <div><strong>仅远程：</strong>只使用远程 API</div>
+          <div><strong>自定义顺序：</strong>用户拖拽排序</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">远程引擎配置示例 (JSON)</div>
+  <div class="mockup-body">
+    <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.8; white-space: pre;">{
+  "ocr": {
+    "activeEngine": "PaddleOCR",
+    "fallbackEngine": "RemoteOCR",
+    "engines": {
+      "PaddleOCR": { "modelPath": "inference/" },
+      "RemoteOCR": {
+        "endpoint": "http://localhost:1224/api/ocr",
+        "apiKey": ""
+      }
+    }
+  },
+  "translation": {
+    "activeEngine": "DeepL",
+    "fallbackEngine": "Google",
+    "engines": {
+      "DeepL": { "apiKey": "your-key", "freeTier": true },
+      "Google": { "endpoint": "free" },
+      "Baidu": { "appId": "", "secret": "" },
+      "OpenAI": { "apiKey": "", "model": "gpt-4o-mini" }
+    }
+  }
+}</div>
+  </div>
+</div>
+
+<h3>这个插件化引擎设计是否符合你的预期？</h3>
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>设计确认</h3>
+      <p>接口清晰，配置灵活，可以继续</p>
+    </div>
+  </div>
+  <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>需要调整</h3>
+      <p>有地方需要修改或补充</p>
+    </div>
+  </div>
+</div>

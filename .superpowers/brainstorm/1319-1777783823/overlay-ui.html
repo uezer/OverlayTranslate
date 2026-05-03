@@ -1,0 +1,106 @@
+<h2>覆盖层 UI 设计</h2>
+<p class="subtitle">OverlayWindow 的层次结构与交互流程</p>
+
+<div class="mockup">
+  <div class="mockup-header">覆盖层窗口层次结构</div>
+  <div class="mockup-body">
+    <div style="position: relative; background: var(--bg-tertiary); border-radius: 8px; height: 300px; overflow: hidden;">
+      <!-- Background screenshot layer -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); opacity: 0.3; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+        [背景截图层 - 模拟屏幕内容]
+      </div>
+      <!-- Mask layer -->
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 14px;">
+        [灰色遮罩层 - 全屏半透明]
+      </div>
+      <!-- Selection area (clear) -->
+      <div style="position: absolute; top: 80px; left: 60px; width: 280px; height: 120px; border: 2px dashed var(--accent); background: transparent; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--accent);">
+        [选区 - 无遮罩，显示原截图]
+      </div>
+      <!-- Floating toolbar -->
+      <div style="position: absolute; top: 210px; left: 100px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; display: flex; gap: 12px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        <span style="padding: 4px 10px; background: var(--accent); color: white; border-radius: 4px;">重选</span>
+        <span style="padding: 4px 10px; background: var(--bg-tertiary); border-radius: 4px;">复制译文</span>
+        <span style="padding: 4px 10px; background: var(--bg-tertiary); border-radius: 4px;">退出</span>
+      </div>
+    </div>
+    <div style="margin-top: 12px; display: flex; gap: 8px; font-size: 12px;">
+      <span style="padding: 4px 8px; background: var(--bg-tertiary); border-radius: 4px;">Z-Order: 背景截图 → 遮罩 → 选区 → 工具栏</span>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">状态机</div>
+  <div class="mockup-body">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px;">
+      <div style="background: var(--selected-bg); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 14px;">
+        <strong>S1</strong> 空闲驻留
+      </div>
+      <span style="color: var(--text-secondary);">→ 托盘左键/快捷键</span>
+      <div style="background: var(--selected-bg); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 14px;">
+        <strong>S2</strong> 截图遮罩
+      </div>
+      <span style="color: var(--text-secondary);">→ 左键拖拽</span>
+      <div style="background: var(--selected-bg); border: 1px solid var(--warning); border-radius: 8px; padding: 8px 14px;">
+        <strong>S3</strong> 选区处理中
+      </div>
+      <span style="color: var(--text-secondary);">→ 完成</span>
+      <div style="background: var(--selected-bg); border: 1px solid var(--success); border-radius: 8px; padding: 8px 14px;">
+        <strong>S4</strong> 结果展示
+      </div>
+    </div>
+    <div style="margin-top: 12px; display: flex; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+      <span>任何状态 → Esc/右键 →</span>
+      <div style="background: var(--bg-tertiary); border-radius: 4px; padding: 4px 8px;">S5 退出回托盘</div>
+      <span>→ 自动回到</span>
+      <div style="background: var(--bg-tertiary); border-radius: 4px; padding: 4px 8px;">S1 空闲驻留</div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">翻译处理流程 (S3 详细)</div>
+  <div class="mockup-body">
+    <div style="display: flex; gap: 12px; font-size: 12px; align-items: center; flex-wrap: wrap;">
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">选区截图</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">OCR 识别</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">文字区域定位</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">背景色采样</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">原文覆盖</div>
+    </div>
+    <div style="display: flex; gap: 12px; font-size: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px;">
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">原文覆盖</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">翻译文本</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">样式分析</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--bg-tertiary); border-radius: 6px; padding: 8px 12px;">字号适配</div>
+      <span style="color: var(--text-secondary);">→</span>
+      <div style="background: var(--selected-bg); border: 1px solid var(--success); border-radius: 6px; padding: 8px 12px;">译文回绘</div>
+    </div>
+  </div>
+</div>
+
+<h3>覆盖层 UI 设计是否符合预期？</h3>
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>设计确认</h3>
+      <p>层次结构、状态机、处理流程都 OK</p>
+    </div>
+  </div>
+  <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>需要调整</h3>
+      <p>有地方需要修改或补充</p>
+    </div>
+  </div>
+</div>

@@ -7,6 +7,26 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/Light.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- 全局控件样式：绑定主题颜色 -->
+            <Style TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Background" Value="{DynamicResource WindowBackgroundBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
+            </Style>
+            <Style TargetType="ComboBox">
+                <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
+            </Style>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
+            </Style>
+            <Style TargetType="CheckBox">
+                <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

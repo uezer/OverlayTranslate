@@ -4,12 +4,6 @@
         Title="OverlayTranslate 设置" Width="520" Height="620"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
         Background="{DynamicResource WindowBackgroundBrush}">
-    <Window.Resources>
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
-        </Style>
-    </Window.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -117,7 +111,7 @@
 
                     <TextBlock Text="Python 运行时路径:" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <TextBox x:Name="PythonRuntimePath" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
-                    <TextBlock Text="留空表示不使用 Python" FontSize="11" Foreground="{DynamicResource TextBaseBrush}" />
+                    <TextBlock Text="留空表示不使用 Python" FontSize="11" />
 
                     <TextBlock Text="主题:" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox x:Name="ThemeComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />

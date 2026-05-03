@@ -29,13 +29,13 @@ public class StyleAnalyzerTests
     }
 
     [Fact]
-    public void Analyze_ClampsFontSize_Maximum72()
+    public void Analyze_LargeRegion_FontSizeScalesUp()
     {
         var region = new Rect(0, 0, 200, 200);
 
         var result = _analyzer.Analyze(region, "Big text");
 
-        Assert.Equal(72, result.FontSize); // 200 * 0.75 = 150, clamped to 72
+        Assert.Equal(150, result.FontSize); // 200 * 0.75 = 150, no upper clamp
     }
 
     [Fact]

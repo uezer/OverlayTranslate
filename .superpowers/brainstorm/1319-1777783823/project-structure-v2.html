@@ -1,0 +1,105 @@
+<h2>项目结构设计 v2</h2>
+<p class="subtitle">含 Python.NET 互操作层</p>
+
+<div class="mockup">
+  <div class="mockup-header">项目目录结构 (更新)</div>
+  <div class="mockup-body">
+    <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.7;">
+      <div>OverlayTranslate/</div>
+      <div>├─ <span style="color: var(--accent);">App.xaml</span> / <span style="color: var(--accent);">App.xaml.cs</span></div>
+      <div>├─ <span style="color: var(--accent);">MainWindow.xaml</span> <span style="color: var(--text-secondary);">(托盘窗口)</span></div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Windows/</span></div>
+      <div>│   ├─ OverlayWindow.xaml <span style="color: var(--text-secondary);">(覆盖层)</span></div>
+      <div>│   └─ SettingsWindow.xaml <span style="color: var(--text-secondary);">(设置)</span></div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Controls/</span></div>
+      <div>│   ├─ SelectionCanvas.cs</div>
+      <div>│   ├─ MaskLayer.cs</div>
+      <div>│   └─ FloatingToolbar.xaml</div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Services/</span></div>
+      <div>│   ├─ ScreenshotService.cs</div>
+      <div>│   ├─ ImageProcessor.cs</div>
+      <div>│   ├─ TextRenderer.cs</div>
+      <div>│   └─ StyleAnalyzer.cs</div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Engines/</span></div>
+      <div>│   ├─ <span style="color: var(--success);">IOcrEngine.cs</span></div>
+      <div>│   ├─ <span style="color: var(--success);">ITranslationEngine.cs</span></div>
+      <div>│   ├─ <span style="color: var(--warning);">Ocr/</span></div>
+      <div>│   │   ├─ PaddleOcrEngine.cs</div>
+      <div>│   │   ├─ RemoteOcrEngine.cs</div>
+      <div>│   │   └─ WindowsOcrEngine.cs</div>
+      <div>│   └─ <span style="color: var(--warning);">Translation/</span></div>
+      <div>│       ├─ DeepLTranslationEngine.cs</div>
+      <div>│       ├─ GoogleTranslationEngine.cs</div>
+      <div>│       ├─ BaiduTranslationEngine.cs</div>
+      <div>│       └─ OpenAiTranslationEngine.cs</div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Models/</span></div>
+      <div>│   ├─ OcrResult.cs, TextBlock.cs</div>
+      <div>│   ├─ TranslationResult.cs</div>
+      <div>│   └─ AppSettings.cs</div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Infrastructure/</span></div>
+      <div>│   ├─ HotkeyManager.cs</div>
+      <div>│   ├─ ConfigManager.cs</div>
+      <div>│   └─ TrayIconManager.cs</div>
+      <div>│</div>
+      <div>├─ <span style="color: #e74c3c;">Python/</span> <span style="color: var(--text-secondary);">(Python.NET 互操作)</span></div>
+      <div>│   ├─ <span style="color: #e74c3c;">PythonRuntime.cs</span> <span style="color: var(--text-secondary);">(运行时初始化/释放)</span></div>
+      <div>│   ├─ <span style="color: #e74c3c;">PythonBridge.cs</span> <span style="color: var(--text-secondary);">(C# ↔ Python 调用桥接)</span></div>
+      <div>│   └─ <span style="color: var(--text-secondary);">scripts/</span> <span style="color: var(--text-secondary);">(Python 脚本，按需放置)</span></div>
+      <div>│</div>
+      <div>└─ <span style="color: var(--warning);">Config/</span></div>
+      <div>    └─ appsettings.json</div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">NuGet 依赖 (更新)</div>
+  <div class="mockup-body">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+      <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px;">
+        <div style="font-weight: bold; margin-bottom: 6px;">已集成</div>
+        <div>• PaddleOCRSharp (本地 OCR)</div>
+        <div>• OpenCvSharp4 (图像处理)</div>
+        <div>• H.NotifyIcon.Wpf (系统托盘)</div>
+      </div>
+      <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px;">
+        <div style="font-weight: bold; margin-bottom: 6px;">需要添加</div>
+        <div>• pythonnet (Python.NET 互操作)</div>
+        <div>• Serilog + Sinks.File (日志)</div>
+        <div>• Microsoft.Extensions.DependencyInjection</div>
+        <div>• Microsoft.Extensions.Http (远程 API)</div>
+      </div>
+    </div>
+    <div style="margin-top: 12px; background: var(--bg-tertiary); border-radius: 8px; padding: 12px; font-size: 12px;">
+      <div style="font-weight: bold; margin-bottom: 4px;">Python 依赖策略</div>
+      <div>• C# 生态成熟的库 → 直接用 C# (如 PaddleOCRSharp、OpenCvSharp)</div>
+      <div>• C# 缺失或实现困难的 → 通过 Python.NET 调用 Python 库</div>
+      <div>• Python 运行时路径在 appsettings.json 中配置</div>
+      <div>• PythonRuntime 负责初始化/释放 Python 引擎，生命周期跟随 App</div>
+    </div>
+  </div>
+</div>
+
+<h3>项目结构 v2 是否 OK？</h3>
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>设计确认</h3>
+      <p>结构和 Python 互操作策略都 OK</p>
+    </div>
+  </div>
+  <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>需要调整</h3>
+      <p>有地方需要修改或补充</p>
+    </div>
+  </div>
+</div>

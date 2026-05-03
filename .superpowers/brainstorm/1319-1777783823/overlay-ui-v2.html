@@ -1,0 +1,112 @@
+<h2>覆盖层 UI 设计 v2</h2>
+<p class="subtitle">含完整工具栏的覆盖层交互设计</p>
+
+<div class="mockup">
+  <div class="mockup-header">覆盖层窗口 — 选区完成状态</div>
+  <div class="mockup-body">
+    <div style="position: relative; background: var(--bg-tertiary); border-radius: 8px; height: 360px; overflow: hidden;">
+      <!-- Background screenshot -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); opacity: 0.3; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+        [背景截图层]
+      </div>
+      <!-- Mask layer -->
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+      <!-- Selection area -->
+      <div style="position: absolute; top: 40px; left: 40px; width: 360px; height: 160px; border: 2px dashed var(--accent); background: transparent;">
+        <!-- Simulated translated overlay -->
+        <div style="position: absolute; top: 20px; left: 20px; background: white; color: #333; padding: 4px 8px; font-size: 12px; border-radius: 2px;">Translated text here</div>
+      </div>
+
+      <!-- Floating Toolbar -->
+      <div style="position: absolute; top: 215px; left: 40px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); min-width: 420px;">
+
+        <!-- Row 1: Language & Engine Selectors -->
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="color: var(--text-secondary); font-size: 11px; min-width: 50px;">原语言</span>
+          <div style="background: var(--bg-tertiary); border-radius: 4px; padding: 4px 10px; flex: 1;">自动检测 ▾</div>
+          <span style="color: var(--text-secondary);">→</span>
+          <span style="color: var(--text-secondary); font-size: 11px; min-width: 50px;">目标语言</span>
+          <div style="background: var(--bg-tertiary); border-radius: 4px; padding: 4px 10px; flex: 1;">中文(简体) ▾</div>
+        </div>
+
+        <!-- Row 2: Engine selectors -->
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="color: var(--text-secondary); font-size: 11px; min-width: 50px;">OCR</span>
+          <div style="background: var(--bg-tertiary); border-radius: 4px; padding: 4px 10px; flex: 1;">PaddleOCR ▾</div>
+          <span style="color: var(--text-secondary); font-size: 11px; min-width: 50px;">翻译</span>
+          <div style="background: var(--bg-tertiary); border-radius: 4px; padding: 4px 10px; flex: 1;">DeepL ▾</div>
+        </div>
+
+        <!-- Row 3: Action buttons -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <span style="padding: 5px 12px; background: var(--accent); color: white; border-radius: 5px; cursor: pointer;">重选</span>
+          <span style="padding: 5px 12px; background: var(--bg-tertiary); border-radius: 5px; cursor: pointer;">显示原文</span>
+          <span style="padding: 5px 12px; background: var(--bg-tertiary); border-radius: 5px; cursor: pointer;">复制原文</span>
+          <span style="padding: 5px 12px; background: var(--bg-tertiary); border-radius: 5px; cursor: pointer;">复制译文</span>
+          <span style="padding: 5px 12px; background: var(--bg-tertiary); border-radius: 5px; cursor: pointer;">退出</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">工具栏功能说明</div>
+  <div class="mockup-body">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+      <div>
+        <h3 style="margin-bottom: 8px;">语言选择</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; line-height: 1.8;">
+          <div><strong>原语言：</strong>默认"自动检测"，也供 OCR 指定识别语言</div>
+          <div><strong>目标语言：</strong>翻译输出语言，影响翻译引擎调用</div>
+          <div style="color: var(--text-secondary); margin-top: 4px;">语言选择持久化到配置文件</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom: 8px;">引擎切换</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; line-height: 1.8;">
+          <div><strong>OCR 引擎：</strong>下拉选择已配置的 OCR 引擎</div>
+          <div><strong>翻译引擎：</strong>下拉选择已配置的翻译引擎</div>
+          <div style="color: var(--text-secondary); margin-top: 4px;">切换后自动重新执行 OCR + 翻译</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom: 8px;">操作按钮</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; line-height: 1.8;">
+          <div><strong>重选：</strong>清除选区，回到 S2 重新框选</div>
+          <div><strong>显示原文：</strong>切换显示原文/译文覆盖层</div>
+          <div><strong>复制原文：</strong>将 OCR 识别的原文复制到剪贴板</div>
+          <div><strong>复制译文：</strong>将翻译结果复制到剪贴板</div>
+          <div><strong>退出：</strong>关闭覆盖层，回到托盘</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom: 8px;">交互细节</h3>
+        <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px; line-height: 1.8;">
+          <div>工具栏位于选区下方，自动避让屏幕边缘</div>
+          <div>下拉菜单点击展开，选择后自动收起</div>
+          <div>引擎切换时显示加载状态</div>
+          <div>"显示原文"为切换按钮（原文 ↔ 译文）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>更新后的工具栏设计是否符合预期？</h3>
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>设计确认</h3>
+      <p>工具栏布局和功能都 OK</p>
+    </div>
+  </div>
+  <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>需要调整</h3>
+      <p>有地方需要修改或补充</p>
+    </div>
+  </div>
+</div>

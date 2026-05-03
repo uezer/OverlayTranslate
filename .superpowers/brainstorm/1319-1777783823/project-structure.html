@@ -1,0 +1,90 @@
+<h2>项目结构设计</h2>
+<p class="subtitle">文件组织与命名空间划分</p>
+
+<div class="mockup">
+  <div class="mockup-header">项目目录结构</div>
+  <div class="mockup-body">
+    <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.7;">
+      <div>OverlayTranslate/</div>
+      <div>├─ <span style="color: var(--accent);">App.xaml</span> / <span style="color: var(--accent);">App.xaml.cs</span></div>
+      <div>├─ <span style="color: var(--accent);">MainWindow.xaml</span> / <span style="color: var(--accent);">MainWindow.xaml.cs</span> <span style="color: var(--text-secondary);">(托盘窗口)</span></div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Windows/</span></div>
+      <div>│   ├─ <span style="color: var(--accent);">OverlayWindow.xaml</span> <span style="color: var(--text-secondary);">(覆盖层主窗口)</span></div>
+      <div>│   └─ <span style="color: var(--accent);">SettingsWindow.xaml</span> <span style="color: var(--text-secondary);">(设置窗口)</span></div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Controls/</span></div>
+      <div>│   ├─ <span style="color: var(--accent);">SelectionCanvas.cs</span> <span style="color: var(--text-secondary);">(选区绘制)</span></div>
+      <div>│   ├─ <span style="color: var(--accent);">MaskLayer.cs</span> <span style="color: var(--text-secondary);">(遮罩层)</span></div>
+      <div>│   └─ <span style="color: var(--accent);">FloatingToolbar.xaml</span> <span style="color: var(--text-secondary);">(浮动工具栏)</span></div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Services/</span></div>
+      <div>│   ├─ <span style="color: var(--accent);">ScreenshotService.cs</span> <span style="color: var(--text-secondary);">(截图服务)</span></div>
+      <div>│   ├─ <span style="color: var(--accent);">ImageProcessor.cs</span> <span style="color: var(--text-secondary);">(图像处理/覆盖)</span></div>
+      <div>│   ├─ <span style="color: var(--accent);">TextRenderer.cs</span> <span style="color: var(--text-secondary);">(文字渲染)</span></div>
+      <div>│   └─ <span style="color: var(--accent);">StyleAnalyzer.cs</span> <span style="color: var(--text-secondary);">(样式分析)</span></div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Engines/</span></div>
+      <div>│   ├─ <span style="color: var(--success);">IOcrEngine.cs</span></div>
+      <div>│   ├─ <span style="color: var(--success);">ITranslationEngine.cs</span></div>
+      <div>│   ├─ <span style="color: var(--warning);">Ocr/</span></div>
+      <div>│   │   ├─ PaddleOcrEngine.cs</div>
+      <div>│   │   ├─ RemoteOcrEngine.cs</div>
+      <div>│   │   └─ WindowsOcrEngine.cs</div>
+      <div>│   └─ <span style="color: var(--warning);">Translation/</span></div>
+      <div>│       ├─ DeepLTranslationEngine.cs</div>
+      <div>│       ├─ GoogleTranslationEngine.cs</div>
+      <div>│       ├─ BaiduTranslationEngine.cs</div>
+      <div>│       └─ OpenAiTranslationEngine.cs</div>
+      <div>│</div>
+      <div>├─ <span style="color: var(--warning);">Models/</span></div>
+      <div>│   ├─ OcrResult.cs</div>
+      <div>│   ├─ TranslationResult.cs</div>
+      <div>│   ├─ TextBlock.cs</div>
+      <div>│   └─ AppSettings.cs</div>
+      <div>│</div>
+      <div>└─ <span style="color: var(--warning);">Infrastructure/</span></div>
+      <div>    ├─ HotkeyManager.cs <span style="color: var(--text-secondary);">(全局热键)</span></div>
+      <div>    ├─ ConfigManager.cs <span style="color: var(--text-secondary);">(JSON 配置)</span></div>
+      <div>    └─ TrayIconManager.cs <span style="color: var(--text-secondary);">(托盘管理)</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup">
+  <div class="mockup-header">NuGet 依赖</div>
+  <div class="mockup-body">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+      <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px;">
+        <div style="font-weight: bold; margin-bottom: 6px;">已集成</div>
+        <div>• PaddleOCRSharp (本地 OCR)</div>
+        <div>• OpenCvSharp4 (图像处理)</div>
+        <div>• H.NotifyIcon.Wpf (系统托盘)</div>
+      </div>
+      <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 12px;">
+        <div style="font-weight: bold; margin-bottom: 6px;">需要添加</div>
+        <div>• Serilog + Sinks.File (日志)</div>
+        <div>• Microsoft.Extensions.DependencyInjection</div>
+        <div>• Microsoft.Extensions.Http (远程 API)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>项目结构是否符合预期？</h3>
+<div class="options">
+  <div class="option" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>设计确认</h3>
+      <p>目录划分和依赖都 OK</p>
+    </div>
+  </div>
+  <div class="option" data-choice="modify" onclick="toggleSelect(this)">
+    <div class="letter">✎</div>
+    <div class="content">
+      <h3>需要调整</h3>
+      <p>有地方需要修改或补充</p>
+    </div>
+  </div>
+</div>

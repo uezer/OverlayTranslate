@@ -1,0 +1,79 @@
+<h2>OverlayTranslate 技术架构</h2>
+<p class="subtitle">基于 WPF + .NET 10 的插件化截图翻译工具</p>
+
+<div class="mockup">
+  <div class="mockup-header">系统架构总览</div>
+  <div class="mockup-body" style="padding: 20px;">
+    <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+      <!-- Entry Layer -->
+      <div style="flex: 1; border: 2px solid var(--accent); border-radius: 8px; padding: 12px; background: var(--bg-tertiary);">
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">入口层</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">系统托盘 (H.NotifyIcon)</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; font-size: 12px;">全局快捷键 (RegisterHotKey)</div>
+      </div>
+      <!-- UI Layer -->
+      <div style="flex: 1; border: 2px solid var(--success); border-radius: 8px; padding: 12px; background: var(--bg-tertiary);">
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">UI 层 (WPF)</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">OverlayWindow 覆盖层</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">SelectionCanvas 选区绘制</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">MaskLayer 灰色遮罩</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; font-size: 12px;">FloatingToolbar 浮动工具栏</div>
+      </div>
+      <!-- Core Layer -->
+      <div style="flex: 1; border: 2px solid var(--warning); border-radius: 8px; padding: 12px; background: var(--bg-tertiary);">
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">核心处理层</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">ScreenshotService 截图服务</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">ImageProcessor 图像处理</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">TextRenderer 文字渲染</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; font-size: 12px;">StyleAnalyzer 样式分析</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 16px;">
+      <!-- OCR Plugin -->
+      <div style="flex: 1; border: 2px solid #9b59b6; border-radius: 8px; padding: 12px; background: var(--bg-tertiary);">
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">OCR 引擎 (插件化)</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">IOcrEngine 接口</div>
+        <div style="background: var(--selected-bg); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">PaddleOcrEngine (本地)</div>
+        <div style="background: var(--selected-bg); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">RemoteOcrEngine (远程API)</div>
+        <div style="background: var(--selected-bg); border-radius: 4px; padding: 6px 10px; font-size: 12px;">WindowsOcrEngine (系统)</div>
+      </div>
+      <!-- Translation Plugin -->
+      <div style="flex: 1; border: 2px solid var(--error); border-radius: 8px; padding: 12px; background: var(--bg-tertiary);">
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">翻译引擎 (插件化)</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">ITranslationEngine 接口</div>
+        <div style="background: var(--selected-bg); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">本地翻译引擎</div>
+        <div style="background: var(--selected-bg); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">Google / DeepL / 百度 / 有道 ...</div>
+        <div style="background: var(--selected-bg); border-radius: 4px; padding: 6px 10px; font-size: 12px;">OpenAI / 自定义 API</div>
+      </div>
+      <!-- Infrastructure -->
+      <div style="flex: 1; border: 2px solid var(--text-secondary); border-radius: 8px; padding: 12px; background: var(--bg-tertiary);">
+        <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">基础设施</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">DI 容器 (MS.Extensions)</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">JSON 配置管理</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 12px;">Serilog 日志</div>
+        <div style="background: var(--bg-secondary); border-radius: 4px; padding: 6px 10px; font-size: 12px;">OpenCV 图像处理</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 24px;">技术选型汇总</h3>
+
+<div class="options">
+  <div class="option" data-choice="confirmed" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>已确认技术栈</h3>
+      <p><strong>运行时：</strong>.NET 10.0 (Windows) + WPF</p>
+      <p><strong>OCR：</strong>PaddleOCR (本地) + 远程 OCR API</p>
+      <p><strong>翻译：</strong>插件化架构，支持多引擎 (参考 pot-app)</p>
+      <p><strong>图像处理：</strong>OpenCV (文字区域清理)</p>
+      <p><strong>配置：</strong>JSON 文件</p>
+      <p><strong>日志：</strong>Serilog</p>
+      <p><strong>DI：</strong>Microsoft.Extensions.DependencyInjection</p>
+      <p><strong>托盘：</strong>H.NotifyIcon.Wpf</p>
+      <p><strong>快捷键：</strong>全局热键 (RegisterHotKey)</p>
+    </div>
+  </div>
+</div>

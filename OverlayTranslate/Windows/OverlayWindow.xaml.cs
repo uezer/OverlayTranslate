@@ -234,13 +234,8 @@ public partial class OverlayWindow : Window
                 (byte)Math.Clamp(bgColor.Val1, 0, 255),
                 (byte)Math.Clamp(bgColor.Val0, 0, 255));
 
-            // 从 OCR 文字框高度估算原图字号
-            var heights = ocrResult.TextBlocks
-                .Where(b => b.BoundingBox.Height > 0)
-                .Select(b => b.BoundingBox.Height)
-                .OrderBy(h => h)
-                .ToArray();
-            var baseFontSize = heights.Length > 0 ? heights[heights.Length / 2] : selection.Height * 0.75;
+            // 字号基于选区高度，确保译文填满选区
+            var baseFontSize = selection.Height * 0.75;
 
             var fontMode = _configManager.Settings.Other.FontSizeMode;
             var customSize = _configManager.Settings.Other.CustomFontSize;
@@ -268,8 +263,8 @@ public partial class OverlayWindow : Window
             SelectionLayer.ClearSelection();
 
             Toolbar.SetData(_originalText, _translatedText);
-            PositionToolbar(selection);
             Toolbar.Visibility = Visibility.Visible;
+            PositionToolbar(selection);
 
             _state = OverlayState.Result;
         }
