@@ -35,4 +35,19 @@ public class ScreenshotService
         bitmap.Save(stream, ImageFormat.Png);
         return stream.ToArray();
     }
+
+    public byte[] CropRegion(byte[] fullScreenshot, Rect region)
+    {
+        using var stream = new MemoryStream(fullScreenshot);
+        using var original = System.Drawing.Image.FromStream(stream);
+        using var cropped = new Bitmap((int)region.Width, (int)region.Height);
+        using var graphics = Graphics.FromImage(cropped);
+        graphics.DrawImage(original,
+            new Rectangle(0, 0, (int)region.Width, (int)region.Height),
+            new Rectangle((int)region.X, (int)region.Y, (int)region.Width, (int)region.Height),
+            GraphicsUnit.Pixel);
+        using var outputStream = new MemoryStream();
+        cropped.Save(outputStream, ImageFormat.Png);
+        return outputStream.ToArray();
+    }
 }

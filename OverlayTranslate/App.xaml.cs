@@ -80,8 +80,8 @@ public partial class App : Application
             return new RemoteOcrEngine(http, endpoint, apiKey);
         });
 
-        // 注册翻译引擎
-        services.AddSingleton<ITranslationEngine>(sp =>
+        // 注册翻译引擎（具体类型）
+        services.AddSingleton<DeepLTranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
@@ -89,13 +89,13 @@ public partial class App : Application
             return new DeepLTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("freeTier") == "true");
         });
 
-        services.AddSingleton<ITranslationEngine>(sp =>
+        services.AddSingleton<GoogleTranslationEngine>(sp =>
         {
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
             return new GoogleTranslationEngine(http);
         });
 
-        services.AddSingleton<ITranslationEngine>(sp =>
+        services.AddSingleton<BaiduTranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
@@ -103,12 +103,27 @@ public partial class App : Application
             return new BaiduTranslationEngine(http, cfg?.GetValueOrDefault("appId") ?? "", cfg?.GetValueOrDefault("secret") ?? "");
         });
 
-        services.AddSingleton<ITranslationEngine>(sp =>
+        services.AddSingleton<OpenAiTranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
             var cfg = config.Settings.Translation.Engines.GetValueOrDefault("OpenAI");
             return new OpenAiTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("model") ?? "gpt-4o-mini");
+        });
+
+        // 根据配置选择默认翻译引擎
+        services.AddSingleton<ITranslationEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var activeEngine = config.Settings.Translation.ActiveEngine;
+            return activeEngine switch
+            {
+                "DeepL" => sp.GetRequiredService<DeepLTranslationEngine>(),
+                "Google" => sp.GetRequiredService<GoogleTranslationEngine>(),
+                "Baidu" => sp.GetRequiredService<BaiduTranslationEngine>(),
+                "OpenAI" => sp.GetRequiredService<OpenAiTranslationEngine>(),
+                _ => sp.GetRequiredService<DeepLTranslationEngine>()
+            };
         });
 
         // 注册截图与图像处理服务

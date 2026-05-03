@@ -211,8 +211,8 @@ public partial class OverlayWindow : Window
 
         try
         {
-            // 截取选区图像
-            var regionImage = _screenshotService.CaptureRegion(selection);
+            // 从已有全屏截图中裁剪选区（避免截到覆盖层 UI）
+            var regionImage = _screenshotService.CropRegion(_screenshotData, selection);
 
             // OCR 识别
             var ocrResult = await _ocrEngine.RecognizeAsync(regionImage);
