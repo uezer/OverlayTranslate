@@ -1,16 +1,18 @@
 <Window x:Class="OverlayTranslate.Windows.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:chrome="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
         Title="OverlayTranslate 设置" Width="520" Height="620"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
-        Background="{DynamicResource WindowBackgroundBrush}">
+        Style="{DynamicResource ThemedWindowStyle}">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TabControl x:Name="Tabs">
+        <TabControl x:Name="Tabs" chrome:WindowChrome.IsHitTestVisibleInChrome="True">
             <!-- OCR 设置 -->
             <TabItem Header="OCR">
                 <StackPanel Margin="12">

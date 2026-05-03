@@ -230,6 +230,20 @@ public partial class App : Application
             return primary;
         });
 
+        // 注册引擎字典（用于运行时切换）
+        services.AddSingleton<Dictionary<string, IOcrEngine>>(sp => new()
+        {
+            ["PaddleOCR"] = sp.GetRequiredService<PaddleOcrEngine>(),
+            ["RemoteOCR"] = sp.GetRequiredService<RemoteOcrEngine>()
+        });
+        services.AddSingleton<Dictionary<string, ITranslationEngine>>(sp => new()
+        {
+            ["Google"] = sp.GetRequiredService<GoogleTranslationEngine>(),
+            ["DeepL"] = sp.GetRequiredService<DeepLTranslationEngine>(),
+            ["百度"] = sp.GetRequiredService<BaiduTranslationEngine>(),
+            ["OpenAI"] = sp.GetRequiredService<OpenAiTranslationEngine>()
+        });
+
         // 注册截图与图像处理服务
         services.AddSingleton<ScreenshotService>();
         services.AddSingleton<ImageProcessor>();
