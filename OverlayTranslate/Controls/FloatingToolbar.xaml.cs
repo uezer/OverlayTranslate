@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using OverlayTranslate.Windows;
 
 namespace OverlayTranslate.Controls;
 
@@ -9,15 +10,18 @@ public partial class FloatingToolbar : UserControl
 {
     private string _originalText = "";
     private string _translatedText = "";
-    private bool _showingOriginal;
+    private OverlayViewMode _currentViewMode = OverlayViewMode.OriginalText;
     private bool _initialized;
 
     public event Action? OnReselect;
     public event Action? OnExit;
     public event Action<string, string>? OnLanguageChanged;
     public event Action<string, string>? OnEngineChanged;
-    public event Action<bool>? OnShowOriginalToggled;
+    public event Action<OverlayViewMode>? OnViewModeChanged;
     public event Action? OnDragStarted;
+    public event Action? OnShowOriginalImage;
+    public event Action<bool>? OnOriginalBgFillChanged;
+    public event Action<bool>? OnTranslatedBgFillChanged;
 
     private bool _isDragging;
     private Point _dragStart;
@@ -71,9 +75,21 @@ public partial class FloatingToolbar : UserControl
     {
         _originalText = originalText;
         _translatedText = translatedText;
-        _showingOriginal = false;
-        ShowOriginalButton.Content = "显示原文";
     }
+
+    public void SetViewMode(OverlayViewMode mode)
+    {
+        _currentViewMode = mode;
+        ViewModeButton.Content = mode switch
+        {
+            OverlayViewMode.OriginalText => "原文",
+            OverlayViewMode.TranslatedText => "译文",
+            _ => "原文"
+        };
+    }
+
+    public bool IsOriginalBgFillEnabled => OriginalBgFillCheckBox.IsChecked == true;
+    public bool IsTranslatedBgFillEnabled => TranslatedBgFillCheckBox.IsChecked == true;
 
     public string GetSourceLanguage() =>
         SourceLanguageComboBox.SelectedItem?.ToString() ?? "auto";
@@ -119,7 +135,6 @@ public partial class FloatingToolbar : UserControl
         var newLeft = currentLeft + dx;
         var newTop = currentTop + dy;
 
-        // 边界约束
         var parent = Parent as FrameworkElement;
         if (parent != null)
         {
@@ -141,11 +156,51 @@ public partial class FloatingToolbar : UserControl
     private void OnReselectClick(object sender, RoutedEventArgs e) => OnReselect?.Invoke();
     private void OnExitClick(object sender, RoutedEventArgs e) => OnExit?.Invoke();
 
-    private void OnShowOriginalClick(object sender, RoutedEventArgs e)
+    // 视图切换：原文 ↔ 译文
+    private void OnViewModeClick(object sender, RoutedEventArgs e)
     {
-        _showingOriginal = !_showingOriginal;
-        ShowOriginalButton.Content = _showingOriginal ? "显示译文" : "显示原文";
-        OnShowOriginalToggled?.Invoke(_showingOriginal);
+        _currentViewMode = _currentViewMode switch
+        {
+            OverlayViewMode.OriginalText => OverlayViewMode.TranslatedText,
+            OverlayViewMode.TranslatedText => OverlayViewMode.OriginalText,
+            _ => OverlayViewMode.OriginalText
+        };
+        ViewModeButton.Content = _currentViewMode switch
+        {
+            OverlayViewMode.OriginalText => "原文",
+            OverlayViewMode.TranslatedText => "译文",
+            _ => "原文"
+        };
+        OnViewModeChanged?.Invoke(_currentViewMode);
+    }
+
+    // 扩展面板切换
+    private void OnExpandClick(object sender, RoutedEventArgs e)
+    {
+        ExpandPanel.Visibility = ExpandPanel.Visibility == Visibility.Visible
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        ExpandButton.Content = ExpandPanel.Visibility == Visibility.Visible ? "▲" : "▼";
+    }
+
+    // 显示原图
+    private void OnShowOriginalImageClick(object sender, RoutedEventArgs e)
+    {
+        _currentViewMode = OverlayViewMode.OriginalImage;
+        ViewModeButton.Content = "原文"; // 按钮保持显示"原文"，原图是临时查看
+        OnViewModeChanged?.Invoke(OverlayViewMode.OriginalImage);
+    }
+
+    // 原文底色覆盖开关
+    private void OnOriginalBgFillClick(object sender, RoutedEventArgs e)
+    {
+        OnOriginalBgFillChanged?.Invoke(OriginalBgFillCheckBox.IsChecked == true);
+    }
+
+    // 译文底色覆盖开关
+    private void OnTranslatedBgFillClick(object sender, RoutedEventArgs e)
+    {
+        OnTranslatedBgFillChanged?.Invoke(TranslatedBgFillCheckBox.IsChecked == true);
     }
 
     private void OnCopyOriginalClick(object sender, RoutedEventArgs e)

@@ -44,7 +44,7 @@ public class TextRenderer
                 fontSize = Math.Max(8, Math.Min(fontSize, style.FontSize * 1.5));
 
                 // 根据译文长度调整字号（如果译文比原文长太多，缩小以适应）
-                var adjustedFontSize = ScaleFontSizeToFit(fontSize, blockDipW, text.Length);
+                var adjustedFontSize = StyleAnalyzer.ScaleFontSizeToFit(fontSize, blockDipW, text.Length);
 
                 var formattedText = new FormattedText(
                     text,
@@ -168,12 +168,5 @@ public class TextRenderer
         return bgImage;
     }
 
-    private static double ScaleFontSizeToFit(double fontSize, double width, int textLength)
-    {
-        if (textLength == 0) return fontSize;
-        var charWidth = fontSize * 0.6;
-        var totalWidth = charWidth * textLength;
-        if (totalWidth <= width) return fontSize;
-        return Math.Max(8, fontSize * (width / totalWidth));
-    }
+    // ScaleFontSizeToFit moved to StyleAnalyzer.ScaleFontSizeToFit (public static)
 }

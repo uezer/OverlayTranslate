@@ -8,6 +8,7 @@
         WindowState="Maximized">
     <Grid x:Name="RootGrid" Background="Black">
         <Image x:Name="BackgroundImage" Stretch="Fill" />
+        <Canvas x:Name="TextOverlayCanvas" />
         <Canvas x:Name="OverlayCanvas">
             <controls:MaskLayer x:Name="Mask" />
             <controls:SelectionCanvas x:Name="SelectionLayer" />

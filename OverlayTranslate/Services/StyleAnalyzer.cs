@@ -58,7 +58,7 @@ public class StyleAnalyzer
         return ScaleFontSizeToFit(originalStyle.FontSize, originalStyle.RegionWidth, translatedText.Length);
     }
 
-    private static double ScaleFontSizeToFit(double fontSize, double width, int textLength)
+    public static double ScaleFontSizeToFit(double fontSize, double width, int textLength)
     {
         var charWidth = fontSize * 0.6;
         var totalWidth = charWidth * textLength;
