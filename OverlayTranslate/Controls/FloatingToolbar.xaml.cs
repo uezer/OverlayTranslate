@@ -116,8 +116,19 @@ public partial class FloatingToolbar : UserControl
 
         var currentLeft = Canvas.GetLeft(this);
         var currentTop = Canvas.GetTop(this);
-        Canvas.SetLeft(this, currentLeft + dx);
-        Canvas.SetTop(this, currentTop + dy);
+        var newLeft = currentLeft + dx;
+        var newTop = currentTop + dy;
+
+        // 边界约束
+        var parent = Parent as FrameworkElement;
+        if (parent != null)
+        {
+            newLeft = Math.Max(0, Math.Min(newLeft, parent.ActualWidth - ActualWidth));
+            newTop = Math.Max(0, Math.Min(newTop, parent.ActualHeight - ActualHeight));
+        }
+
+        Canvas.SetLeft(this, newLeft);
+        Canvas.SetTop(this, newTop);
         _dragStart = currentPos;
     }
 

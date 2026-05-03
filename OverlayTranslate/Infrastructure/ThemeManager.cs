@@ -30,7 +30,8 @@ public static class ThemeManager
 
         var app = System.Windows.Application.Current;
         var existing = app.Resources.MergedDictionaries
-            .FirstOrDefault(d => d.Source?.OriginalString.Contains("Themes/") == true);
+            .FirstOrDefault(d => d.Source?.OriginalString.EndsWith("/Light.xaml") == true
+                              || d.Source?.OriginalString.EndsWith("/Dark.xaml") == true);
         if (existing != null)
             app.Resources.MergedDictionaries.Remove(existing);
 
