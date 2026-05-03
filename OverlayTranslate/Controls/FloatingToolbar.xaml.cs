@@ -32,10 +32,24 @@ public partial class FloatingToolbar : UserControl
     /// </summary>
     public event Action<string, string>? OnEngineChanged;
 
+    /// <summary>
+    /// 切换显示原文/译文时触发（参数：true 表示显示原文）。
+    /// </summary>
+    public event Action<bool>? OnShowOriginalToggled;
+
     public FloatingToolbar()
     {
         InitializeComponent();
         LoadDefaultLanguages();
+
+        SourceLanguageComboBox.SelectionChanged += (_, e) =>
+            OnLanguageChanged?.Invoke("source", SourceLanguageComboBox.SelectedItem?.ToString() ?? "");
+        TargetLanguageComboBox.SelectionChanged += (_, e) =>
+            OnLanguageChanged?.Invoke("target", TargetLanguageComboBox.SelectedItem?.ToString() ?? "");
+        OcrEngineComboBox.SelectionChanged += (_, e) =>
+            OnEngineChanged?.Invoke("ocr", OcrEngineComboBox.SelectedItem?.ToString() ?? "");
+        TranslationEngineComboBox.SelectionChanged += (_, e) =>
+            OnEngineChanged?.Invoke("translation", TranslationEngineComboBox.SelectedItem?.ToString() ?? "");
     }
 
     /// <summary>
@@ -127,7 +141,7 @@ public partial class FloatingToolbar : UserControl
     {
         _showingOriginal = !_showingOriginal;
         ShowOriginalButton.Content = _showingOriginal ? "显示译文" : "显示原文";
-        // TODO: 通知 OverlayWindow 切换显示原文/译文
+        OnShowOriginalToggled?.Invoke(_showingOriginal);
     }
 
     private void OnCopyOriginalClick(object sender, RoutedEventArgs e)

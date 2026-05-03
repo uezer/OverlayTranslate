@@ -47,6 +47,7 @@ public partial class OverlayWindow : Window
     private byte[]? _screenshotData;
     private string _originalText = "";
     private string _translatedText = "";
+    private ImageSource? _translationResultImage;
 
     public OverlayWindow(
         ScreenshotService screenshotService,
@@ -68,6 +69,17 @@ public partial class OverlayWindow : Window
         // 注册工具栏事件
         Toolbar.OnReselect += HandleReselect;
         Toolbar.OnExit += HandleExit;
+        Toolbar.OnShowOriginalToggled += showOriginal =>
+        {
+            if (showOriginal && _screenshotData != null)
+            {
+                ShowBackgroundImage(_screenshotData);
+            }
+            else if (!showOriginal && _translationResultImage != null)
+            {
+                ShowTranslationResult();
+            }
+        };
 
         // 注册引擎列表
         Toolbar.SetEngines(
@@ -232,6 +244,7 @@ public partial class OverlayWindow : Window
                 filledImage, _translatedText, selection, styleInfo);
 
             // 更新显示
+            _translationResultImage = resultImage;
             BackgroundImage.Source = resultImage;
             Mask.ClearSelection();
             SelectionLayer.ClearSelection();
@@ -318,6 +331,32 @@ public partial class OverlayWindow : Window
     private void HandleExit()
     {
         ExitOverlay();
+    }
+
+    /// <summary>
+    /// 显示原始截图。
+    /// </summary>
+    private void ShowBackgroundImage(byte[] imageData)
+    {
+        var bitmapImage = new BitmapImage();
+        using var stream = new System.IO.MemoryStream(imageData);
+        bitmapImage.BeginInit();
+        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+        bitmapImage.StreamSource = stream;
+        bitmapImage.EndInit();
+        bitmapImage.Freeze();
+        BackgroundImage.Source = bitmapImage;
+    }
+
+    /// <summary>
+    /// 显示翻译结果图像。
+    /// </summary>
+    private void ShowTranslationResult()
+    {
+        if (_translationResultImage != null)
+        {
+            BackgroundImage.Source = _translationResultImage;
+        }
     }
 
     /// <summary>
