@@ -79,6 +79,15 @@ public partial class SettingsWindow : Window
         LogLevelComboBox.SelectedItem = settings.Logging.Level;
         LogFile.Text = settings.Logging.File;
         PythonRuntimePath.Text = settings.Python.RuntimePath;
+
+        var themes = new[] { "system", "light", "dark" };
+        foreach (var t in themes) ThemeComboBox.Items.Add(t);
+        ThemeComboBox.SelectedItem = settings.Other.Theme;
+
+        var fontModes = new[] { "auto", "fit-width", "custom" };
+        foreach (var m in fontModes) FontSizeModeComboBox.Items.Add(m);
+        FontSizeModeComboBox.SelectedItem = settings.Other.FontSizeMode;
+        CustomFontSizeTextBox.Text = settings.Other.CustomFontSize.ToString();
     }
 
     private void OnSaveClick(object sender, RoutedEventArgs e)
@@ -133,6 +142,14 @@ public partial class SettingsWindow : Window
         settings.Logging.Level = LogLevelComboBox.SelectedItem?.ToString() ?? "Information";
         settings.Logging.File = LogFile.Text;
         settings.Python.RuntimePath = PythonRuntimePath.Text;
+
+        settings.Other.Theme = ThemeComboBox.SelectedItem?.ToString() ?? "system";
+        settings.Other.FontSizeMode = FontSizeModeComboBox.SelectedItem?.ToString() ?? "auto";
+        if (int.TryParse(CustomFontSizeTextBox.Text, out var fontSize))
+            settings.Other.CustomFontSize = fontSize;
+
+        // 保存后立即应用主题
+        ThemeManager.SetTheme(settings.Other.Theme);
 
         _configManager.Save();
         MessageBox.Show(
