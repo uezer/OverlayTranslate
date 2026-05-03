@@ -25,6 +25,7 @@ public partial class FloatingToolbar : UserControl
 
     private bool _isDragging;
     private Point _dragStart;
+    private bool _eventsSuspended;
 
     public FloatingToolbar()
     {
@@ -36,22 +37,22 @@ public partial class FloatingToolbar : UserControl
 
         SourceLanguageComboBox.SelectionChanged += (_, _) =>
         {
-            if (_initialized)
+            if (_initialized && !_eventsSuspended)
                 OnLanguageChanged?.Invoke("source", SourceLanguageComboBox.SelectedItem?.ToString() ?? "");
         };
         TargetLanguageComboBox.SelectionChanged += (_, _) =>
         {
-            if (_initialized)
+            if (_initialized && !_eventsSuspended)
                 OnLanguageChanged?.Invoke("target", TargetLanguageComboBox.SelectedItem?.ToString() ?? "");
         };
         OcrEngineComboBox.SelectionChanged += (_, _) =>
         {
-            if (_initialized)
+            if (_initialized && !_eventsSuspended)
                 OnEngineChanged?.Invoke("ocr", OcrEngineComboBox.SelectedItem?.ToString() ?? "");
         };
         TranslationEngineComboBox.SelectionChanged += (_, _) =>
         {
-            if (_initialized)
+            if (_initialized && !_eventsSuspended)
                 OnEngineChanged?.Invoke("translation", TranslationEngineComboBox.SelectedItem?.ToString() ?? "");
         };
     }
@@ -90,6 +91,9 @@ public partial class FloatingToolbar : UserControl
 
     public bool IsOriginalBgFillEnabled => OriginalBgFillCheckBox.IsChecked == true;
     public bool IsTranslatedBgFillEnabled => TranslatedBgFillCheckBox.IsChecked == true;
+
+    public void SuspendEvents() => _eventsSuspended = true;
+    public void ResumeEvents() => _eventsSuspended = false;
 
     public string GetSourceLanguage() =>
         SourceLanguageComboBox.SelectedItem?.ToString() ?? "auto";

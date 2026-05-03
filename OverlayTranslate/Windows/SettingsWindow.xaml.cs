@@ -2,6 +2,7 @@ using System.Windows;
 using OverlayTranslate.Engines;
 using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Models;
+using Serilog;
 
 namespace OverlayTranslate.Windows;
 
@@ -171,6 +172,9 @@ public partial class SettingsWindow : Window
         // 保存后立即应用主题
         ThemeManager.SetTheme(settings.Other.Theme);
 
+        Log.Information("设置保存: OCR={Ocr}, Translation={Trans}, Source={Src}, Target={Tgt}",
+            settings.Ocr.ActiveEngine, settings.Translation.ActiveEngine,
+            settings.Language.Source, settings.Language.Target);
         _configManager.Save();
         MessageBox.Show(
             "设置已保存。\n\n" +

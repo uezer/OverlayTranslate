@@ -138,15 +138,22 @@ public partial class OverlayWindow : Window
         var transNames = _translationEngines.Keys.ToArray();
         _currentOcrEngineName = _configManager.Settings.Ocr.ActiveEngine;
         _currentTranslationEngineName = _configManager.Settings.Translation.ActiveEngine;
+        Log.Information("配置加载: OCR={Ocr}, Translation={Trans}", _currentOcrEngineName, _currentTranslationEngineName);
         if (!_ocrEngines.ContainsKey(_currentOcrEngineName))
             _currentOcrEngineName = ocrNames.FirstOrDefault() ?? "";
         if (!_translationEngines.ContainsKey(_currentTranslationEngineName))
             _currentTranslationEngineName = transNames.FirstOrDefault() ?? "";
+
+        // 先暂停事件，避免 SetEngines 触发 SelectionChanged 覆盖配置
+        Toolbar.SuspendEvents();
         Toolbar.SetEngines(
             ocrNames.Select(MapOcrDisplayName).ToArray(),
             transNames.Select(MapTranslationDisplayName).ToArray());
         Toolbar.SetSelectedOcrEngine(MapOcrDisplayName(_currentOcrEngineName));
         Toolbar.SetSelectedTranslationEngine(MapTranslationDisplayName(_currentTranslationEngineName));
+        Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
+        Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
+        Toolbar.ResumeEvents();
         Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
         Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
 
