@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.Extensions.DependencyInjection;
 using OverlayTranslate.Controls;
 using OverlayTranslate.Engines;
 using OverlayTranslate.Infrastructure;
@@ -30,6 +29,7 @@ public partial class OverlayWindow : Window
     private readonly StyleAnalyzer _styleAnalyzer;
     private readonly IOcrEngine _ocrEngine;
     private readonly ITranslationEngine _translationEngine;
+    private readonly ConfigManager _configManager;
 
     private OverlayState _state = OverlayState.Idle;
     private Point _selectionStart;
@@ -48,7 +48,8 @@ public partial class OverlayWindow : Window
         TextRenderer textRenderer,
         StyleAnalyzer styleAnalyzer,
         IOcrEngine ocrEngine,
-        ITranslationEngine translationEngine)
+        ITranslationEngine translationEngine,
+        ConfigManager configManager)
     {
         _screenshotService = screenshotService;
         _imageProcessor = imageProcessor;
@@ -56,6 +57,7 @@ public partial class OverlayWindow : Window
         _styleAnalyzer = styleAnalyzer;
         _ocrEngine = ocrEngine;
         _translationEngine = translationEngine;
+        _configManager = configManager;
 
         InitializeComponent();
 
@@ -238,9 +240,8 @@ public partial class OverlayWindow : Window
                 .ToArray();
             var baseFontSize = heights.Length > 0 ? heights[heights.Length / 2] : selection.Height * 0.75;
 
-            var app = (App)Application.Current;
-            var fontMode = app.Services.GetRequiredService<ConfigManager>().Settings.Other.FontSizeMode;
-            var customSize = app.Services.GetRequiredService<ConfigManager>().Settings.Other.CustomFontSize;
+            var fontMode = _configManager.Settings.Other.FontSizeMode;
+            var customSize = _configManager.Settings.Other.CustomFontSize;
 
             var styleInfo = _styleAnalyzer.Analyze(selection, _originalText, baseFontSize, fontMode, customSize, wpfBgColor);
             Log.Information("Background color sampled: B={B}, G={G}, R={R}", bgColor.Val0, bgColor.Val1, bgColor.Val2);
