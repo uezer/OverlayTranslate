@@ -6,6 +6,7 @@ using OverlayTranslate.Engines.Ocr;
 using OverlayTranslate.Engines.Translation;
 using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Services;
+using OverlayTranslate.Windows;
 using Serilog;
 using Serilog.Events;
 
@@ -40,6 +41,16 @@ public partial class App : Application
 
         // 启动托盘（后续任务实现）
         // Services.GetRequiredService<TrayIconManager>();
+
+        // 显示主窗口（托盘宿主）
+        var mainWindow = Services.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+    }
+
+    public void StartScreenshot()
+    {
+        var overlay = Services.GetRequiredService<OverlayWindow>();
+        overlay.ShowForSelection();
     }
 
     private void ConfigureServices(IServiceCollection services, ConfigManager configManager)
@@ -107,6 +118,15 @@ public partial class App : Application
         services.AddSingleton<ImageProcessor>();
         services.AddSingleton<StyleAnalyzer>();
         services.AddSingleton<TextRenderer>();
+
+        // 注册覆盖层窗口（Transient 每次创建新实例）
+        services.AddTransient<OverlayWindow>();
+
+        // 注册系统托盘与热键
+        services.AddSingleton<HotkeyManager>();
+        services.AddSingleton<TrayIconManager>(sp =>
+            new TrayIconManager(() => ((App)Application.Current).StartScreenshot()));
+        services.AddSingleton<MainWindow>();
     }
 
     protected override void OnExit(ExitEventArgs e)

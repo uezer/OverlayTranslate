@@ -1,24 +1,41 @@
-﻿using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.Extensions.DependencyInjection;
+using OverlayTranslate.Infrastructure;
 
-namespace OverlayTranslate
+namespace OverlayTranslate;
+
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    private TrayIconManager? _trayManager;
+    private HotkeyManager? _hotkeyManager;
+
+    public MainWindow()
     {
-        public MainWindow()
+        InitializeComponent();
+
+        Loaded += OnLoaded;
+        Closing += OnClosing;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // 从 DI 容器获取依赖（XAML 要求无参构造函数，无法使用构造函数注入）
+        var app = (App)Application.Current;
+        _trayManager = app.Services.GetRequiredService<TrayIconManager>();
+        _hotkeyManager = app.Services.GetRequiredService<HotkeyManager>();
+
+        _trayManager.Initialize();
+
+        // 注册全局热键 Ctrl+Alt+T 触发截图翻译
+        _hotkeyManager.Register(this, ["Ctrl", "Alt"], "T", () =>
         {
-            InitializeComponent();
-        }
+            app.StartScreenshot();
+        });
+    }
+
+    private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        _hotkeyManager?.Dispose();
+        _trayManager?.Dispose();
     }
 }
