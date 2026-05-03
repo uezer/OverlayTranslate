@@ -55,6 +55,10 @@ public partial class App : Application
         ConfigureServices(services, configManager);
         Services = services.BuildServiceProvider();
 
+        // 初始化主题
+        var theme = configManager.Settings.Other.Theme;
+        ThemeManager.SetTheme(theme);
+
         // 显示主窗口（托盘宿主）
         var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
