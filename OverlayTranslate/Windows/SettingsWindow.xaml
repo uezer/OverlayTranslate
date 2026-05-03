@@ -74,19 +74,8 @@
                             <TextBox x:Name="OpenAIModel" Width="280" />
                         </StackPanel>
 
-                        <TextBlock Text="Microsoft" FontWeight="SemiBold" Margin="0,0,0,4" />
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="API Key:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="MicrosoftApiKey" Width="280" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <TextBlock Text="区域:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="MicrosoftRegion" Width="280" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="端点:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="MicrosoftEndpoint" Width="280" />
-                        </StackPanel>
+                        <TextBlock Text="Microsoft (Bing 翻译)" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="无需配置，直接使用" FontSize="11" Margin="80,0,0,12" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

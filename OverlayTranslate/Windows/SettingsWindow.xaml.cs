@@ -65,13 +65,6 @@ public partial class SettingsWindow : Window
         OpenAIModel.Text = settings.Translation.Engines
             .GetValueOrDefault("OpenAI")?.GetValueOrDefault("model") ?? "gpt-4o-mini";
 
-        MicrosoftApiKey.Text = settings.Translation.Engines
-            .GetValueOrDefault("Microsoft")?.GetValueOrDefault("apiKey") ?? "";
-        MicrosoftRegion.Text = settings.Translation.Engines
-            .GetValueOrDefault("Microsoft")?.GetValueOrDefault("region") ?? "";
-        MicrosoftEndpoint.Text = settings.Translation.Engines
-            .GetValueOrDefault("Microsoft")?.GetValueOrDefault("endpoint") ?? "";
-
         // 语言
         var languages = new[] { "auto", "zh", "zh-CN", "en", "ja", "ko", "fr", "de", "es", "ru" };
         foreach (var l in languages)
@@ -140,13 +133,6 @@ public partial class SettingsWindow : Window
             ["apiKey"] = OpenAIApiKey.Text,
             ["model"] = OpenAIModel.Text
         };
-        settings.Translation.Engines["Microsoft"] = new Dictionary<string, string>
-        {
-            ["apiKey"] = MicrosoftApiKey.Text,
-            ["region"] = MicrosoftRegion.Text,
-            ["endpoint"] = MicrosoftEndpoint.Text
-        };
-
         // 语言
         settings.Language.Source = SourceLanguageComboBox.SelectedItem?.ToString() ?? "auto";
         settings.Language.Target = TargetLanguageComboBox.SelectedItem?.ToString() ?? "zh-CN";
