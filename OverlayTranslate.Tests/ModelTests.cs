@@ -1,4 +1,5 @@
 using System.Windows;
+using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Models;
 
 namespace OverlayTranslate.Tests;
@@ -143,5 +144,23 @@ public class ModelTests
         Assert.True(style.IsBold);
         Assert.Equal(200, style.RegionWidth);
         Assert.Equal(50, style.RegionHeight);
+    }
+
+    [Fact]
+    public void ThemeManager_GetSystemTheme_ReturnsValidValue()
+    {
+        var theme = ThemeManager.GetSystemTheme();
+        Assert.Contains(theme, new[] { "light", "dark" });
+    }
+
+    [Fact]
+    public void ThemeManager_SetTheme_DoesNotThrow()
+    {
+        // 需要 Application 上下文，此测试仅验证不抛异常
+        // 在非 WPF 环境中跳过
+        if (Application.Current == null) return;
+        var ex = Record.Exception(() =>
+            ThemeManager.SetTheme("dark"));
+        Assert.Null(ex);
     }
 }
