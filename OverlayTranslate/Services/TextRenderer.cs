@@ -46,7 +46,7 @@ public class TextRenderer
             bgImage.Freeze();
         }
 
-        Serilog.Log.Information("RenderTranslatedText: bgImage Pixel={PW}x{PH}, DIP={DW}x{DH}, DPI={DpiX}x{DpiY}, region={RX},{RY},{RW},{RH}, text={Text}",
+        Serilog.Log.Debug("RenderTranslatedText: bgImage Pixel={PW}x{PH}, DIP={DW}x{DH}, DPI={DpiX}x{DpiY}, region={RX},{RY},{RW},{RH}, text={Text}",
             bgImage.PixelWidth, bgImage.PixelHeight, bgImage.Width, bgImage.Height, bgImage.DpiX, bgImage.DpiY,
             region.X, region.Y, region.Width, region.Height,
             translatedText.Length > 30 ? translatedText[..30] + "..." : translatedText);
@@ -85,7 +85,7 @@ public class TextRenderer
                 : Color.FromArgb(160, 255, 255, 255); // 浅色背景：半透明白色底
             dc.DrawRectangle(new SolidColorBrush(textBgColor), null, textBgRect);
 
-            Serilog.Log.Information("RenderTranslatedText: fontSize={Size}, textDIP={TW}x{TH}, pos={X},{Y}, textColor={TC}",
+            Serilog.Log.Debug("RenderTranslatedText: fontSize={Size}, textDIP={TW}x{TH}, pos={X},{Y}, textColor={TC}",
                 adjustedSize, formattedText.Width, formattedText.Height, x, y, style.TextColor);
             dc.DrawText(formattedText, new Point(x, y));
         }
@@ -98,7 +98,7 @@ public class TextRenderer
         renderTarget.Render(visual);
         renderTarget.Freeze();
 
-        Serilog.Log.Information("RenderTranslatedText: output RTB {PW}x{PH}, DPI={DpiX}x{DpiY}, Format={Format}",
+        Serilog.Log.Debug("RenderTranslatedText: output RTB {PW}x{PH}, DPI={DpiX}x{DpiY}, Format={Format}",
             renderTarget.PixelWidth, renderTarget.PixelHeight, renderTarget.DpiX, renderTarget.DpiY,
             renderTarget.Format);
 
@@ -107,7 +107,7 @@ public class TextRenderer
         var cx = renderTarget.PixelWidth / 2;
         var cy = renderTarget.PixelHeight / 2;
         renderTarget.CopyPixels(new System.Windows.Int32Rect(cx, cy, 1, 1), testPixels, 4, 0);
-        Serilog.Log.Information("RenderTranslatedText: center pixel at ({CX},{CY}) = B={B} G={G} R={R} A={A}",
+        Serilog.Log.Debug("RenderTranslatedText: center pixel at ({CX},{CY}) = B={B} G={G} R={R} A={A}",
             cx, cy, testPixels[0], testPixels[1], testPixels[2], testPixels[3]);
 
         // 检查选区内像素
@@ -116,7 +116,7 @@ public class TextRenderer
         if (selPx >= 0 && selPx < renderTarget.PixelWidth && selPy >= 0 && selPy < renderTarget.PixelHeight)
         {
             renderTarget.CopyPixels(new System.Windows.Int32Rect(selPx, selPy, 1, 1), testPixels, 4, 0);
-            Serilog.Log.Information("RenderTranslatedText: selection pixel at ({PX},{PY}) = B={B} G={G} R={R} A={A}",
+            Serilog.Log.Debug("RenderTranslatedText: selection pixel at ({PX},{PY}) = B={B} G={G} R={R} A={A}",
                 selPx, selPy, testPixels[0], testPixels[1], testPixels[2], testPixels[3]);
         }
 

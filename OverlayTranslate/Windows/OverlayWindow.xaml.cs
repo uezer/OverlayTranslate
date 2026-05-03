@@ -67,7 +67,7 @@ public partial class OverlayWindow : Window
         {
             var w = args.NewSize.Width;
             var h = args.NewSize.Height;
-            Log.Information("SizeChanged: {W}x{H}", w, h);
+            Log.Debug("SizeChanged: {W}x{H}", w, h);
             // Grid 自动填充窗口，BackgroundImage 会自动填充 Grid
             // OverlayCanvas 也会自动填充 Grid（作为 Grid 的第二个子元素）
             // 但 MaskLayer 是 Canvas 的子元素，需要显式设置尺寸
@@ -105,7 +105,7 @@ public partial class OverlayWindow : Window
             var bitmapImage = BytesToBitmapImage(_screenshotData);
             _screenshotDpiX = bitmapImage.DpiX > 0 ? bitmapImage.DpiX : 96;
             _screenshotDpiY = bitmapImage.DpiY > 0 ? bitmapImage.DpiY : 96;
-            Log.Information("ShowForSelection: bitmapImage Pixel={PW}x{PH}, DIP={DW}x{DH}, DPI={DpiX}x{DpiY}",
+            Log.Debug("ShowForSelection: bitmapImage Pixel={PW}x{PH}, DIP={DW}x{DH}, DPI={DpiX}x{DpiY}",
                 bitmapImage.PixelWidth, bitmapImage.PixelHeight, bitmapImage.Width, bitmapImage.Height,
                 _screenshotDpiX, _screenshotDpiY);
             BackgroundImage.Source = bitmapImage;
@@ -204,7 +204,7 @@ public partial class OverlayWindow : Window
         {
             var regionImage = _screenshotService.CropRegion(_screenshotData, selection);
             if (_selectionGeneration != generation) return;
-            Log.Information("CropRegion: {Size} bytes for region {X},{Y},{W},{H}", regionImage.Length, selection.X, selection.Y, selection.Width, selection.Height);
+            Log.Debug("CropRegion: {Size} bytes for region {X},{Y},{W},{H}", regionImage.Length, selection.X, selection.Y, selection.Width, selection.Height);
 
             var ocrResult = await _ocrEngine.RecognizeAsync(regionImage);
             if (_selectionGeneration != generation) return;
@@ -246,20 +246,20 @@ public partial class OverlayWindow : Window
             var customSize = _configManager.Settings.Other.CustomFontSize;
 
             var styleInfo = _styleAnalyzer.Analyze(selection, _originalText, baseFontSize, fontMode, customSize, wpfBgColor);
-            Log.Information("Background color sampled: B={B}, G={G}, R={R}", bgColor.Val0, bgColor.Val1, bgColor.Val2);
+            Log.Debug("Background color sampled: B={B}, G={G}, R={R}", bgColor.Val0, bgColor.Val1, bgColor.Val2);
 
             var filledImage = _imageProcessor.FillRegion(_screenshotData, selection, bgColor);
-            Log.Information("FillRegion done: {Size} bytes", filledImage.Length);
+            Log.Debug("FillRegion done: {Size} bytes", filledImage.Length);
 
             // 使用原始截图的 DPI（FillRegion 的 PNG 编码会丢失 DPI 元数据）
             var resultImage = _textRenderer.RenderTranslatedText(
                 filledImage, _translatedText, selection, styleInfo,
                 _screenshotDpiX, _screenshotDpiY);
-            Log.Information("RenderTranslatedText done: Pixel={PW}x{PH}", resultImage.PixelWidth, resultImage.PixelHeight);
+            Log.Debug("RenderTranslatedText done: Pixel={PW}x{PH}", resultImage.PixelWidth, resultImage.PixelHeight);
 
             _translationResultImage = resultImage;
             BackgroundImage.Source = resultImage;
-            Log.Information("BackgroundImage.Source set: Image.ActualSize={W}x{H}, Image.Visibility={Vis}, Grid.ActualSize={GW}x{GH}, OverlayCanvas.ActualSize={OW}x{OH}, Window.ActualSize={WW}x{WH}",
+            Log.Debug("BackgroundImage.Source set: Image.ActualSize={W}x{H}, Image.Visibility={Vis}, Grid.ActualSize={GW}x{GH}, OverlayCanvas.ActualSize={OW}x{OH}, Window.ActualSize={WW}x{WH}",
                 BackgroundImage.ActualWidth, BackgroundImage.ActualHeight, BackgroundImage.Visibility,
                 RootGrid.ActualWidth, RootGrid.ActualHeight,
                 OverlayCanvas.ActualWidth, OverlayCanvas.ActualHeight,

@@ -42,7 +42,7 @@ public class ImageProcessor
 
         using var border = src[new OpenCvSharp.Rect(x, y, w, h)];
         var mean = Cv2.Mean(border);
-        Serilog.Log.Information("SampleBackgroundColor: img={W}x{H}, region={RX},{RY},{RW},{RH}, pixelRect={PX},{PY},{PW},{PH}, sampleRect={SX},{SY},{SW},{SH}, mean={B},{G},{R},{A}",
+        Serilog.Log.Debug("SampleBackgroundColor: img={W}x{H}, region={RX},{RY},{RW},{RH}, pixelRect={PX},{PY},{PW},{PH}, sampleRect={SX},{SY},{SW},{SH}, mean={B},{G},{R},{A}",
             src.Width, src.Height, rect.X, rect.Y, rect.Width, rect.Height, rect.X, rect.Y, rect.Width, rect.Height,
             x, y, w, h, mean.Val0, mean.Val1, mean.Val2, mean.Val3);
         return mean;
@@ -54,13 +54,13 @@ public class ImageProcessor
         if (src.Empty()) throw new ArgumentException("Invalid image data");
 
         var rect = ToPixelRect(src, region);
-        Serilog.Log.Information("FillRegion: img={W}x{H}, rect={X},{Y},{W},{H}, color={B},{G},{R},{A}",
+        Serilog.Log.Debug("FillRegion: img={W}x{H}, rect={X},{Y},{W},{H}, color={B},{G},{R},{A}",
             src.Width, src.Height, rect.X, rect.Y, rect.Width, rect.Height,
             color.Val0, color.Val1, color.Val2, color.Val3);
         Cv2.Rectangle(src, rect, color, -1);
 
         Cv2.ImEncode(".png", src, out var buf);
-        Serilog.Log.Information("FillRegion: output PNG {Size} bytes", buf.Length);
+        Serilog.Log.Debug("FillRegion: output PNG {Size} bytes", buf.Length);
         return buf.ToArray();
     }
 
