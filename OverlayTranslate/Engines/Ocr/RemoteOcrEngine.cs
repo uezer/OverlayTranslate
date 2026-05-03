@@ -43,7 +43,7 @@ public class RemoteOcrEngine : IOcrEngine
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
-        var doc = JsonDocument.Parse(json);
+        using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
         var textBlocks = new List<TextBlock>();
