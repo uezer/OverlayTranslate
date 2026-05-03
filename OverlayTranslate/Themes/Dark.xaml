@@ -8,11 +8,11 @@
     <Color x:Key="ButtonFaceColor">#3C3C3C</Color>
     <Color x:Key="ButtonHoverColor">#505050</Color>
 
-    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
-    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}" />
-    <SolidColorBrush x:Key="BorderBaseBrush" Color="{StaticResource BorderBaseColor}" />
-    <SolidColorBrush x:Key="TextBaseBrush" Color="{StaticResource TextBaseColor}" />
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="ButtonFaceBrush" Color="{StaticResource ButtonFaceColor}" />
-    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{StaticResource ButtonHoverColor}" />
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{DynamicResource WindowBackgroundColor}" />
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{DynamicResource PanelBackgroundColor}" />
+    <SolidColorBrush x:Key="BorderBaseBrush" Color="{DynamicResource BorderBaseColor}" />
+    <SolidColorBrush x:Key="TextBaseBrush" Color="{DynamicResource TextBaseColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+    <SolidColorBrush x:Key="ButtonFaceBrush" Color="{DynamicResource ButtonFaceColor}" />
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{DynamicResource ButtonHoverColor}" />
 </ResourceDictionary>
