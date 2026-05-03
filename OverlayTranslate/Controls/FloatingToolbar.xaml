@@ -6,7 +6,11 @@
              mc:Ignorable="d"
              d:DesignHeight="120" d:DesignWidth="400">
     <Border Background="#F0F0F0" CornerRadius="6" Padding="8"
-            BorderBrush="#CCCCCC" BorderThickness="1">
+            BorderBrush="#CCCCCC" BorderThickness="1"
+            Cursor="SizeAll"
+            MouseLeftButtonDown="OnBorderMouseLeftButtonDown"
+            MouseMove="OnBorderMouseMove"
+            MouseLeftButtonUp="OnBorderMouseLeftButtonUp">
         <Border.Effect>
             <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3" />
         </Border.Effect>

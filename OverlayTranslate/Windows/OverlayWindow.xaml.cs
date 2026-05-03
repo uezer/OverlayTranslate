@@ -41,6 +41,7 @@ public partial class OverlayWindow : Window
     private int _selectionGeneration;
     private double _screenshotDpiX = 96;
     private double _screenshotDpiY = 96;
+    private bool _autoPositionToolbar = true;
 
     public OverlayWindow(
         ScreenshotService screenshotService,
@@ -76,6 +77,7 @@ public partial class OverlayWindow : Window
 
         Toolbar.OnReselect += HandleReselect;
         Toolbar.OnExit += HandleExit;
+        Toolbar.OnDragStarted += () => _autoPositionToolbar = false;
         Toolbar.OnShowOriginalToggled += showOriginal =>
         {
             if (showOriginal && _screenshotData != null)
@@ -288,6 +290,7 @@ public partial class OverlayWindow : Window
 
     private void PositionToolbar(Rect selection)
     {
+        if (!_autoPositionToolbar) return;
         Toolbar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         var toolbarSize = Toolbar.DesiredSize;
 
@@ -339,6 +342,7 @@ public partial class OverlayWindow : Window
 
     private void HandleReselect()
     {
+        _autoPositionToolbar = true;
         _selectionGeneration++; // 取消进行中的处理
         _state = OverlayState.Selecting;
         Mask.ClearSelection();

@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace OverlayTranslate.Controls;
 
@@ -16,6 +17,10 @@ public partial class FloatingToolbar : UserControl
     public event Action<string, string>? OnLanguageChanged;
     public event Action<string, string>? OnEngineChanged;
     public event Action<bool>? OnShowOriginalToggled;
+    public event Action? OnDragStarted;
+
+    private bool _isDragging;
+    private Point _dragStart;
 
     public FloatingToolbar()
     {
@@ -92,6 +97,34 @@ public partial class FloatingToolbar : UserControl
         }
         SourceLanguageComboBox.SelectedIndex = 0;
         TargetLanguageComboBox.SelectedIndex = 1;
+    }
+
+    private void OnBorderMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _isDragging = true;
+        _dragStart = e.GetPosition(Parent as UIElement);
+        ((Border)sender).CaptureMouse();
+        OnDragStarted?.Invoke();
+    }
+
+    private void OnBorderMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDragging) return;
+        var currentPos = e.GetPosition(Parent as UIElement);
+        var dx = currentPos.X - _dragStart.X;
+        var dy = currentPos.Y - _dragStart.Y;
+
+        var currentLeft = Canvas.GetLeft(this);
+        var currentTop = Canvas.GetTop(this);
+        Canvas.SetLeft(this, currentLeft + dx);
+        Canvas.SetTop(this, currentTop + dy);
+        _dragStart = currentPos;
+    }
+
+    private void OnBorderMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _isDragging = false;
+        ((Border)sender).ReleaseMouseCapture();
     }
 
     private void OnReselectClick(object sender, RoutedEventArgs e) => OnReselect?.Invoke();
