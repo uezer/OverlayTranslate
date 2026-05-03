@@ -5,8 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="120" d:DesignWidth="400">
-    <Border Background="#F0F0F0" CornerRadius="6" Padding="8"
-            BorderBrush="#CCCCCC" BorderThickness="1"
+    <Border Background="{DynamicResource PanelBackgroundBrush}" CornerRadius="6" Padding="8"
+            BorderBrush="{DynamicResource BorderBaseBrush}" BorderThickness="1"
             Cursor="SizeAll"
             MouseLeftButtonDown="OnBorderMouseLeftButtonDown"
             MouseMove="OnBorderMouseMove"
@@ -14,20 +14,26 @@
         <Border.Effect>
             <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.3" />
         </Border.Effect>
+        <Border.Resources>
+            <Style TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBaseBrush}" />
+            </Style>
+        </Border.Resources>
         <StackPanel>
             <!-- 第一行：语言选择 -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBlock Text="原语言:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <TextBlock Text="原语言:" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{DynamicResource TextBaseBrush}" />
                 <ComboBox x:Name="SourceLanguageComboBox" Width="100" Margin="0,0,8,0" />
-                <TextBlock Text="目标语言:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <TextBlock Text="目标语言:" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{DynamicResource TextBaseBrush}" />
                 <ComboBox x:Name="TargetLanguageComboBox" Width="100" />
             </StackPanel>
 
             <!-- 第二行：引擎选择 -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBlock Text="OCR引擎:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <TextBlock Text="OCR引擎:" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{DynamicResource TextBaseBrush}" />
                 <ComboBox x:Name="OcrEngineComboBox" Width="100" Margin="0,0,8,0" />
-                <TextBlock Text="翻译引擎:" VerticalAlignment="Center" Margin="0,0,4,0" />
+                <TextBlock Text="翻译引擎:" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{DynamicResource TextBaseBrush}" />
                 <ComboBox x:Name="TranslationEngineComboBox" Width="100" />
             </StackPanel>
 
