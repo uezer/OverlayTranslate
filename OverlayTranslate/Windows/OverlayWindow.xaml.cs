@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using OverlayTranslate.Controls;
 using OverlayTranslate.Engines;
+using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Models;
 using OverlayTranslate.Services;
 using Serilog;
@@ -228,7 +229,20 @@ public partial class OverlayWindow : Window
                 (byte)Math.Clamp(bgColor.Val2, 0, 255),
                 (byte)Math.Clamp(bgColor.Val1, 0, 255),
                 (byte)Math.Clamp(bgColor.Val0, 0, 255));
-            var styleInfo = _styleAnalyzer.Analyze(selection, _originalText, backgroundColor: wpfBgColor);
+
+            // 从 OCR 文字框高度估算原图字号
+            var heights = ocrResult.TextBlocks
+                .Where(b => b.BoundingBox.Height > 0)
+                .Select(b => b.BoundingBox.Height)
+                .OrderBy(h => h)
+                .ToArray();
+            var baseFontSize = heights.Length > 0 ? heights[heights.Length / 2] : selection.Height * 0.75;
+
+            var app = (App)Application.Current;
+            var fontMode = app.Services.GetRequiredService<ConfigManager>().Settings.Other.FontSizeMode;
+            var customSize = app.Services.GetRequiredService<ConfigManager>().Settings.Other.CustomFontSize;
+
+            var styleInfo = _styleAnalyzer.Analyze(selection, _originalText, baseFontSize, fontMode, customSize, wpfBgColor);
             Log.Information("Background color sampled: B={B}, G={G}, R={R}", bgColor.Val0, bgColor.Val1, bgColor.Val2);
 
             var filledImage = _imageProcessor.FillRegion(_screenshotData, selection, bgColor);
