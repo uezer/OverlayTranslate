@@ -154,8 +154,6 @@ public partial class OverlayWindow : Window
         Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
         Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
         Toolbar.ResumeEvents();
-        Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
-        Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
 
         // 最小化/恢复模式：避免首次 Show 时最大化动画导致白屏闪烁
         Loaded += (_, _) => WindowState = WindowState.Maximized;
@@ -309,6 +307,7 @@ public partial class OverlayWindow : Window
             _state = OverlayState.Result;
 
             // === 阶段 2：翻译 + 译文覆盖 ===
+            Toolbar.SetLoading(true);
             var sourceLang = Toolbar.GetSourceLanguage();
             var targetLang = Toolbar.GetTargetLanguage();
             var translationEngine = GetCurrentTranslationEngine();
@@ -357,9 +356,11 @@ public partial class OverlayWindow : Window
             Toolbar.SetData(_originalText, _translatedText);
             ApplyViewMode(OverlayViewMode.TranslatedText);
             Toolbar.SetViewMode(OverlayViewMode.TranslatedText);
+            Toolbar.SetLoading(false);
         }
         catch (Exception ex)
         {
+            Toolbar.SetLoading(false);
             if (_selectionGeneration != generation) return;
             Log.Error(ex, "处理选区失败");
             _state = OverlayState.Selecting;
@@ -500,26 +501,29 @@ public partial class OverlayWindow : Window
     private void RerunAll()
     {
         if (_state != OverlayState.Result || _screenshotData == null) return;
-        _filledImageBytes = null; // 需要重新填充
-        _ = ProcessSelectionAsync(_currentSelection, ++_selectionGeneration);
+        _filledImageBytes = null;
+        _selectionGeneration++;
+        _ = ProcessSelectionAsync(_currentSelection, _selectionGeneration);
     }
 
     private void RerunTranslation()
     {
         if (_state != OverlayState.Result || _screenshotData == null || string.IsNullOrEmpty(_originalText)) return;
+        _selectionGeneration++;
         _ = ReTranslateAsync();
     }
 
     private async Task ReTranslateAsync()
     {
         var gen = _selectionGeneration;
+        Toolbar.SetLoading(true);
         try
         {
             var sourceLang = Toolbar.GetSourceLanguage();
             var targetLang = Toolbar.GetTargetLanguage();
             var engine = GetCurrentTranslationEngine();
             var blocks = _lastOcrTextBlocks;
-            if (blocks == null || blocks.Count == 0) return;
+            if (blocks == null || blocks.Count == 0) { Toolbar.SetLoading(false); return; }
 
             var translatedBlocks = new List<(string Text, Rect BoundingBox)>();
             var allTexts = new List<string>();
@@ -554,9 +558,11 @@ public partial class OverlayWindow : Window
             }
 
             Toolbar.SetData(_originalText, _translatedText);
+            Toolbar.SetLoading(false);
         }
         catch (Exception ex)
         {
+            Toolbar.SetLoading(false);
             if (_selectionGeneration != gen) return;
             Log.Error(ex, "重新翻译失败");
         }

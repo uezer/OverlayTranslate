@@ -95,6 +95,11 @@ public partial class FloatingToolbar : UserControl
     public void SuspendEvents() => _eventsSuspended = true;
     public void ResumeEvents() => _eventsSuspended = false;
 
+    public void SetLoading(bool loading)
+    {
+        ProgressBar.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     public string GetSourceLanguage() =>
         SourceLanguageComboBox.SelectedItem?.ToString() ?? "auto";
 
