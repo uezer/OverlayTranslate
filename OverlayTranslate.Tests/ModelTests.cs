@@ -89,6 +89,7 @@ public class ModelTests
         Assert.NotNull(settings.Language);
         Assert.NotNull(settings.Python);
         Assert.NotNull(settings.Logging);
+        Assert.NotNull(settings.Other);
     }
 
     [Fact]
