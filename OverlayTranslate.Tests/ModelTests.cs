@@ -92,6 +92,16 @@ public class ModelTests
     }
 
     [Fact]
+    public void AppSettings_HasOtherSettings_WithDefaults()
+    {
+        var settings = new AppSettings();
+        Assert.NotNull(settings.Other);
+        Assert.Equal("auto", settings.Other.FontSizeMode);
+        Assert.Equal(14, settings.Other.CustomFontSize);
+        Assert.Equal("system", settings.Other.Theme);
+    }
+
+    [Fact]
     public void OcrResult_TextBlocks_CanAddMultiple()
     {
         var result = new OcrResult();

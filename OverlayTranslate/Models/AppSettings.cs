@@ -8,6 +8,7 @@ public class AppSettings
     public LanguageSettings Language { get; set; } = new();
     public PythonSettings Python { get; set; } = new();
     public LoggingSettings Logging { get; set; } = new();
+    public OtherSettings Other { get; set; } = new();
 }
 
 public class OcrSettings
@@ -47,4 +48,11 @@ public class LoggingSettings
 {
     public string Level { get; set; } = "Information";
     public string File { get; set; } = "logs/app.log";
+}
+
+public class OtherSettings
+{
+    public string FontSizeMode { get; set; } = "auto"; // auto / fit-width / custom
+    public int CustomFontSize { get; set; } = 14;
+    public string Theme { get; set; } = "system"; // light / dark / system
 }
