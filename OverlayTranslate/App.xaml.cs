@@ -1,5 +1,7 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using OverlayTranslate.Engines;
+using OverlayTranslate.Engines.Ocr;
 using OverlayTranslate.Infrastructure;
 using Serilog;
 using Serilog.Events;
@@ -41,6 +43,17 @@ public partial class App : Application
     {
         services.AddSingleton(configManager);
         services.AddHttpClient();
+
+        // 注册 OCR 引擎
+        services.AddSingleton<IOcrEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var modelPath = config.Settings.Ocr.Engines
+                .GetValueOrDefault("PaddleOCR")
+                ?.GetValueOrDefault("modelPath") ?? "inference/";
+            return new PaddleOcrEngine(modelPath);
+        });
+
         // 后续任务添加更多服务注册
     }
 
