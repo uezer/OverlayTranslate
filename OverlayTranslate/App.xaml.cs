@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using OverlayTranslate.Engines;
@@ -52,6 +53,20 @@ public partial class App : Application
                 .GetValueOrDefault("PaddleOCR")
                 ?.GetValueOrDefault("modelPath") ?? "inference/";
             return new PaddleOcrEngine(modelPath);
+        });
+
+        // 注册远程 OCR 引擎
+        services.AddSingleton<RemoteOcrEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+            var endpoint = config.Settings.Ocr.Engines
+                .GetValueOrDefault("RemoteOCR")
+                ?.GetValueOrDefault("endpoint") ?? "";
+            var apiKey = config.Settings.Ocr.Engines
+                .GetValueOrDefault("RemoteOCR")
+                ?.GetValueOrDefault("apiKey") ?? "";
+            return new RemoteOcrEngine(http, endpoint, apiKey);
         });
 
         // 后续任务添加更多服务注册
