@@ -291,15 +291,47 @@ public partial class OverlayWindow : Window
         Toolbar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         var toolbarSize = Toolbar.DesiredSize;
 
-        double x = selection.X;
-        double y = selection.Bottom + 8;
+        var screenW = ActualWidth;
+        var screenH = ActualHeight;
 
-        if (y + toolbarSize.Height > ActualHeight)
+        // 优先级: 下 → 上 → 右 → 左 → 贴边
+        double x, y;
+
+        // 尝试下方
+        y = selection.Bottom + 8;
+        if (y + toolbarSize.Height > screenH)
+        {
+            // 尝试上方
             y = selection.Top - toolbarSize.Height - 8;
-        if (x + toolbarSize.Width > ActualWidth)
-            x = ActualWidth - toolbarSize.Width - 8;
-        if (x < 0) x = 8;
-        if (y < 0) y = 8;
+            if (y < 0)
+            {
+                // 尝试右侧
+                x = selection.Right + 8;
+                y = selection.Y;
+                if (x + toolbarSize.Width > screenW)
+                {
+                    // 尝试左侧
+                    x = selection.Left - toolbarSize.Width - 8;
+                    if (x < 0)
+                        x = 8; // 贴边
+                }
+                // 纵向 clamp
+                y = Math.Max(8, Math.Min(y, screenH - toolbarSize.Height - 8));
+            }
+            else
+            {
+                x = selection.X;
+            }
+        }
+        else
+        {
+            x = selection.X;
+        }
+
+        // 横向 clamp
+        x = Math.Max(8, Math.Min(x, screenW - toolbarSize.Width - 8));
+        // 纵向 clamp
+        y = Math.Max(8, Math.Min(y, screenH - toolbarSize.Height - 8));
 
         Canvas.SetLeft(Toolbar, x);
         Canvas.SetTop(Toolbar, y);
