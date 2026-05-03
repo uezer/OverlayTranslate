@@ -97,7 +97,15 @@ public partial class OverlayWindow : Window
         Toolbar.OnShowOriginalImage += () => ApplyViewMode(OverlayViewMode.OriginalImage);
         Toolbar.OnOriginalBgFillChanged += _ => ApplyViewMode(_viewMode);
         Toolbar.OnTranslatedBgFillChanged += _ => ApplyViewMode(_viewMode);
-        Toolbar.OnLanguageChanged += (_, _) => RerunTranslation();
+        Toolbar.OnLanguageChanged += (which, value) =>
+        {
+            if (which == "source")
+                _configManager.Settings.Language.Source = value;
+            else
+                _configManager.Settings.Language.Target = value;
+            _configManager.Save();
+            RerunTranslation();
+        };
         Toolbar.OnEngineChanged += (which, value) =>
         {
             if (which == "ocr")
@@ -106,6 +114,8 @@ public partial class OverlayWindow : Window
                 if (_ocrEngines.ContainsKey(name))
                 {
                     _currentOcrEngineName = name;
+                    _configManager.Settings.Ocr.ActiveEngine = name;
+                    _configManager.Save();
                     Log.Information("切换 OCR 引擎: {Engine}", name);
                     RerunAll();
                 }
@@ -116,6 +126,8 @@ public partial class OverlayWindow : Window
                 if (_translationEngines.ContainsKey(name))
                 {
                     _currentTranslationEngineName = name;
+                    _configManager.Settings.Translation.ActiveEngine = name;
+                    _configManager.Save();
                     Log.Information("切换翻译引擎: {Engine}", name);
                     RerunTranslation();
                 }
@@ -124,11 +136,19 @@ public partial class OverlayWindow : Window
 
         var ocrNames = _ocrEngines.Keys.ToArray();
         var transNames = _translationEngines.Keys.ToArray();
-        _currentOcrEngineName = ocrNames.FirstOrDefault() ?? "";
-        _currentTranslationEngineName = transNames.FirstOrDefault() ?? "";
+        _currentOcrEngineName = _configManager.Settings.Ocr.ActiveEngine;
+        _currentTranslationEngineName = _configManager.Settings.Translation.ActiveEngine;
+        if (!_ocrEngines.ContainsKey(_currentOcrEngineName))
+            _currentOcrEngineName = ocrNames.FirstOrDefault() ?? "";
+        if (!_translationEngines.ContainsKey(_currentTranslationEngineName))
+            _currentTranslationEngineName = transNames.FirstOrDefault() ?? "";
         Toolbar.SetEngines(
             ocrNames.Select(MapOcrDisplayName).ToArray(),
             transNames.Select(MapTranslationDisplayName).ToArray());
+        Toolbar.SetSelectedOcrEngine(MapOcrDisplayName(_currentOcrEngineName));
+        Toolbar.SetSelectedTranslationEngine(MapTranslationDisplayName(_currentTranslationEngineName));
+        Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
+        Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
 
         // 最小化/恢复模式：避免首次 Show 时最大化动画导致白屏闪烁
         Loaded += (_, _) => WindowState = WindowState.Maximized;

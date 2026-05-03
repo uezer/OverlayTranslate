@@ -97,6 +97,30 @@ public partial class FloatingToolbar : UserControl
     public string GetTargetLanguage() =>
         TargetLanguageComboBox.SelectedItem?.ToString() ?? "zh";
 
+    public void SetSourceLanguage(string lang)
+    {
+        var idx = SourceLanguageComboBox.Items.IndexOf(lang);
+        if (idx >= 0) SourceLanguageComboBox.SelectedIndex = idx;
+    }
+
+    public void SetTargetLanguage(string lang)
+    {
+        var idx = TargetLanguageComboBox.Items.IndexOf(lang);
+        if (idx >= 0) TargetLanguageComboBox.SelectedIndex = idx;
+    }
+
+    public void SetSelectedOcrEngine(string name)
+    {
+        var idx = OcrEngineComboBox.Items.IndexOf(name);
+        if (idx >= 0) OcrEngineComboBox.SelectedIndex = idx;
+    }
+
+    public void SetSelectedTranslationEngine(string name)
+    {
+        var idx = TranslationEngineComboBox.Items.IndexOf(name);
+        if (idx >= 0) TranslationEngineComboBox.SelectedIndex = idx;
+    }
+
     public string GetSelectedOcrEngine() =>
         OcrEngineComboBox.SelectedItem?.ToString() ?? "";
 
@@ -105,7 +129,7 @@ public partial class FloatingToolbar : UserControl
 
     private void LoadDefaultLanguages()
     {
-        string[] languages = ["auto", "zh", "en", "ja", "ko", "fr", "de", "es", "ru", "pt", "it"];
+        string[] languages = ["auto", "zh", "zh-CN", "en", "ja", "ko", "fr", "de", "es", "ru", "pt", "it"];
         foreach (var lang in languages)
         {
             SourceLanguageComboBox.Items.Add(lang);
