@@ -3,6 +3,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using OverlayTranslate.Engines;
 using OverlayTranslate.Engines.Ocr;
+using OverlayTranslate.Engines.Translation;
 using OverlayTranslate.Infrastructure;
 using Serilog;
 using Serilog.Events;
@@ -69,7 +70,36 @@ public partial class App : Application
             return new RemoteOcrEngine(http, endpoint, apiKey);
         });
 
-        // 后续任务添加更多服务注册
+        // 注册翻译引擎
+        services.AddSingleton<DeepLTranslationEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+            var cfg = config.Settings.Translation.Engines.GetValueOrDefault("DeepL");
+            return new DeepLTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("freeTier") == "true");
+        });
+
+        services.AddSingleton<GoogleTranslationEngine>(sp =>
+        {
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+            return new GoogleTranslationEngine(http);
+        });
+
+        services.AddSingleton<BaiduTranslationEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+            var cfg = config.Settings.Translation.Engines.GetValueOrDefault("Baidu");
+            return new BaiduTranslationEngine(http, cfg?.GetValueOrDefault("appId") ?? "", cfg?.GetValueOrDefault("secret") ?? "");
+        });
+
+        services.AddSingleton<OpenAiTranslationEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+            var cfg = config.Settings.Translation.Engines.GetValueOrDefault("OpenAI");
+            return new OpenAiTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("model") ?? "gpt-4o-mini");
+        });
     }
 
     protected override void OnExit(ExitEventArgs e)
