@@ -51,11 +51,23 @@ public class RemoteOcrEngine : IOcrEngine
         {
             foreach (var block in blocks.EnumerateArray())
             {
-                textBlocks.Add(new TextBlock
+                var textBlock = new TextBlock
                 {
                     Text = block.GetProperty("text").GetString() ?? "",
                     Confidence = block.TryGetProperty("confidence", out var c) ? c.GetSingle() : 1.0f
-                });
+                };
+
+                // 解析 boundingBox（如果远程 API 返回）
+                if (block.TryGetProperty("boundingBox", out var bb))
+                {
+                    var x = bb.TryGetProperty("x", out var bx) ? bx.GetDouble() : 0;
+                    var y = bb.TryGetProperty("y", out var by) ? by.GetDouble() : 0;
+                    var w = bb.TryGetProperty("width", out var bw) ? bw.GetDouble() : 0;
+                    var h = bb.TryGetProperty("height", out var bh) ? bh.GetDouble() : 0;
+                    textBlock.BoundingBox = new Rect(x, y, w, h);
+                }
+
+                textBlocks.Add(textBlock);
             }
         }
 
