@@ -1,0 +1,18 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="WindowBackgroundColor">#1E1E1E</Color>
+    <Color x:Key="PanelBackgroundColor">#2D2D2D</Color>
+    <Color x:Key="BorderBaseColor">#404040</Color>
+    <Color x:Key="TextBaseColor">#E0E0E0</Color>
+    <Color x:Key="AccentColor">#4CC2FF</Color>
+    <Color x:Key="ButtonFaceColor">#3C3C3C</Color>
+    <Color x:Key="ButtonHoverColor">#505050</Color>
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}" />
+    <SolidColorBrush x:Key="BorderBaseBrush" Color="{StaticResource BorderBaseColor}" />
+    <SolidColorBrush x:Key="TextBaseBrush" Color="{StaticResource TextBaseColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="ButtonFaceBrush" Color="{StaticResource ButtonFaceColor}" />
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{StaticResource ButtonHoverColor}" />
+</ResourceDictionary>
