@@ -14,9 +14,27 @@ public class TextStyleInfo
 
 public class StyleAnalyzer
 {
-    public TextStyleInfo Analyze(Rect boundingBox, string text, Color? backgroundColor = null)
+    public TextStyleInfo Analyze(Rect boundingBox, string text,
+        double baseFontSize = 0, string fontSizeMode = "auto", int customFontSize = 14, Color? backgroundColor = null)
     {
-        var estimatedFontSize = boundingBox.Height * 0.75;
+        double fontSize;
+        switch (fontSizeMode)
+        {
+            case "custom":
+                fontSize = customFontSize;
+                break;
+            case "fit-width":
+                fontSize = baseFontSize > 0 ? baseFontSize : boundingBox.Height * 0.75;
+                var charWidth = fontSize * 0.6;
+                var totalWidth = charWidth * text.Length;
+                if (totalWidth > boundingBox.Width)
+                    fontSize = Math.Max(8, fontSize * (boundingBox.Width / totalWidth));
+                break;
+            default: // "auto"
+                fontSize = baseFontSize > 0 ? baseFontSize : boundingBox.Height * 0.75;
+                break;
+        }
+        fontSize = Math.Max(8, Math.Min(72, fontSize));
 
         // 根据背景亮度自动选择文字颜色：深色背景用白字，浅色背景用黑字
         var textColor = Colors.Black;
@@ -29,7 +47,7 @@ public class StyleAnalyzer
 
         return new TextStyleInfo
         {
-            FontSize = Math.Max(8, Math.Min(72, estimatedFontSize)),
+            FontSize = fontSize,
             TextColor = textColor,
             IsBold = false,
             RegionWidth = boundingBox.Width,

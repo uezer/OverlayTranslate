@@ -127,6 +127,34 @@ public class StyleAnalyzerTests
     }
 
     [Fact]
+    public void Analyze_AutoMode_UsesProvidedBaseFontSize()
+    {
+        var analyzer = new StyleAnalyzer();
+        var region = new Rect(0, 0, 200, 50);
+        var result = analyzer.Analyze(region, "test", 12.0, "auto");
+        Assert.Equal(12.0, result.FontSize);
+    }
+
+    [Fact]
+    public void Analyze_FitWidthMode_ScalesToFit()
+    {
+        var analyzer = new StyleAnalyzer();
+        var region = new Rect(0, 0, 100, 50);
+        // 译文很长，字号应该缩小以适应宽度
+        var result = analyzer.Analyze(region, "这是一个很长的翻译文本用于测试", 20.0, "fit-width");
+        Assert.True(result.FontSize < 20.0);
+    }
+
+    [Fact]
+    public void Analyze_CustomMode_UsesCustomSize()
+    {
+        var analyzer = new StyleAnalyzer();
+        var region = new Rect(0, 0, 200, 50);
+        var result = analyzer.Analyze(region, "test", 12.0, "custom", 18);
+        Assert.Equal(18.0, result.FontSize);
+    }
+
+    [Fact]
     public void Analyze_WithSmallRegion_HandlesCorrectly()
     {
         var region = new Rect(0, 0, 10, 10);

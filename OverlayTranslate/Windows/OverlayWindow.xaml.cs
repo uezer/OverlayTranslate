@@ -228,7 +228,7 @@ public partial class OverlayWindow : Window
                 (byte)Math.Clamp(bgColor.Val2, 0, 255),
                 (byte)Math.Clamp(bgColor.Val1, 0, 255),
                 (byte)Math.Clamp(bgColor.Val0, 0, 255));
-            var styleInfo = _styleAnalyzer.Analyze(selection, _originalText, wpfBgColor);
+            var styleInfo = _styleAnalyzer.Analyze(selection, _originalText, backgroundColor: wpfBgColor);
             Log.Information("Background color sampled: B={B}, G={G}, R={R}", bgColor.Val0, bgColor.Val1, bgColor.Val2);
 
             var filledImage = _imageProcessor.FillRegion(_screenshotData, selection, bgColor);
