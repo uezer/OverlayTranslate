@@ -39,9 +39,6 @@ public partial class App : Application
         ConfigureServices(services, configManager);
         Services = services.BuildServiceProvider();
 
-        // 启动托盘（后续任务实现）
-        // Services.GetRequiredService<TrayIconManager>();
-
         // 显示主窗口（托盘宿主）
         var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
