@@ -21,8 +21,15 @@ public class ConfigManager
     {
         if (File.Exists(ConfigPath))
         {
-            var json = File.ReadAllText(ConfigPath);
-            Settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+            try
+            {
+                var json = File.ReadAllText(ConfigPath);
+                Settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+            }
+            catch (Exception ex) when (ex is JsonException or IOException)
+            {
+                Settings = new AppSettings();
+            }
         }
         else
         {

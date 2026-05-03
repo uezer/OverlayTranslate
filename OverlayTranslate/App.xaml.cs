@@ -2,6 +2,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using OverlayTranslate.Infrastructure;
 using Serilog;
+using Serilog.Events;
 
 namespace OverlayTranslate;
 
@@ -18,8 +19,12 @@ public partial class App : Application
         configManager.Load();
 
         // 配置 Serilog
+        var logLevel = Enum.TryParse<LogEventLevel>(
+            configManager.Settings.Logging.Level, true, out var level)
+            ? level : LogEventLevel.Information;
+
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
+            .MinimumLevel.Is(logLevel)
             .WriteTo.File(configManager.Settings.Logging.File, rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
