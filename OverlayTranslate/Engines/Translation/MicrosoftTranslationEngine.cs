@@ -17,7 +17,7 @@ public class MicrosoftTranslationEngine : ITranslationEngine
     private readonly string _region;
     private readonly string _endpoint;
 
-    public MicrosoftTranslationEngine(HttpClient httpClient, string apiKey, string region = "", string endpoint = "https://api.translator.azure.cn")
+    public MicrosoftTranslationEngine(HttpClient httpClient, string apiKey, string region = "", string endpoint = "https://api.cognitive.microsofttranslator.com")
     {
         _httpClient = httpClient;
         _apiKey = apiKey;
