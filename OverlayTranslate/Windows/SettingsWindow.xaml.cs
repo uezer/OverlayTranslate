@@ -1,4 +1,5 @@
 using System.Windows;
+using OverlayTranslate.Engines;
 using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Models;
 
@@ -8,20 +9,27 @@ public partial class SettingsWindow : Window
 {
     private readonly ConfigManager _configManager;
 
-    public SettingsWindow(ConfigManager configManager)
+    public SettingsWindow(
+        ConfigManager configManager,
+        Dictionary<string, IOcrEngine> ocrEngines,
+        Dictionary<string, ITranslationEngine> translationEngines)
     {
         _configManager = configManager;
+        _ocrEngineNames = ocrEngines.Keys.ToArray();
+        _translationEngineNames = translationEngines.Keys.ToArray();
         InitializeComponent();
         LoadSettings();
     }
+
+    private readonly string[] _ocrEngineNames;
+    private readonly string[] _translationEngineNames;
 
     private void LoadSettings()
     {
         var settings = _configManager.Settings;
 
         // OCR
-        var ocrEngines = new[] { "PaddleOCR", "RemoteOCR" };
-        foreach (var e in ocrEngines) OcrEngineComboBox.Items.Add(e);
+        foreach (var e in _ocrEngineNames) OcrEngineComboBox.Items.Add(e);
         OcrEngineComboBox.SelectedItem = settings.Ocr.ActiveEngine;
 
         PaddleModelPath.Text = settings.Ocr.Engines
@@ -32,14 +40,13 @@ public partial class SettingsWindow : Window
         RemoteOcrApiKey.Text = settings.Ocr.Engines
             .GetValueOrDefault("RemoteOCR")?.GetValueOrDefault("apiKey") ?? "";
 
-        var fallbackItems = new[] { "(无)", "PaddleOCR", "RemoteOCR" };
+        var fallbackItems = new[] { "(无)" }.Concat(_ocrEngineNames).ToArray();
         foreach (var f in fallbackItems) OcrFallbackComboBox.Items.Add(f);
         OcrFallbackComboBox.SelectedItem = string.IsNullOrEmpty(settings.Ocr.FallbackEngine)
             ? "(无)" : settings.Ocr.FallbackEngine;
 
         // 翻译
-        var transEngines = new[] { "DeepL", "Google", "Baidu", "OpenAI", "Microsoft" };
-        foreach (var e in transEngines) TranslationEngineComboBox.Items.Add(e);
+        foreach (var e in _translationEngineNames) TranslationEngineComboBox.Items.Add(e);
         TranslationEngineComboBox.SelectedItem = settings.Translation.ActiveEngine;
 
         DeepLApiKey.Text = settings.Translation.Engines
