@@ -5,6 +5,7 @@ using OverlayTranslate.Engines;
 using OverlayTranslate.Engines.Ocr;
 using OverlayTranslate.Engines.Translation;
 using OverlayTranslate.Infrastructure;
+using OverlayTranslate.Python;
 using OverlayTranslate.Services;
 using OverlayTranslate.Windows;
 using Serilog;
@@ -118,6 +119,16 @@ public partial class App : Application
 
         // 注册覆盖层窗口（Transient 每次创建新实例）
         services.AddTransient<OverlayWindow>();
+
+        // 注册 Python 互操作
+        services.AddSingleton<PythonRuntime>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var runtime = new PythonRuntime();
+            runtime.Initialize(config.Settings.Python.RuntimePath);
+            return runtime;
+        });
+        services.AddSingleton<PythonBridge>();
 
         // 注册系统托盘与热键
         services.AddSingleton<HotkeyManager>();
