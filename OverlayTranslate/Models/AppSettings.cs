@@ -20,7 +20,7 @@ public class OcrSettings
 
 public class TranslationSettings
 {
-    public string ActiveEngine { get; set; } = "DeepL";
+    public string ActiveEngine { get; set; } = "Google";
     public string? FallbackEngine { get; set; }
     public string Strategy { get; set; } = "LocalFirst";
     public Dictionary<string, Dictionary<string, string>> Engines { get; set; } = new();

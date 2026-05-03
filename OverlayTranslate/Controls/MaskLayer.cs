@@ -33,12 +33,17 @@ public class MaskLayer : Canvas
 
         // 响应窗口尺寸变化
         SizeChanged += OnSizeChanged;
+        Loaded += (_, _) => UpdateSize();
     }
 
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateSize();
+
+    private void UpdateSize()
     {
-        _maskRect.Width = ActualWidth > 0 ? ActualWidth : SystemParameters.PrimaryScreenWidth;
-        _maskRect.Height = ActualHeight > 0 ? ActualHeight : SystemParameters.PrimaryScreenHeight;
+        var w = ActualWidth > 0 ? ActualWidth : SystemParameters.PrimaryScreenWidth;
+        var h = ActualHeight > 0 ? ActualHeight : SystemParameters.PrimaryScreenHeight;
+        _maskRect.Width = w;
+        _maskRect.Height = h;
     }
 
     /// <summary>

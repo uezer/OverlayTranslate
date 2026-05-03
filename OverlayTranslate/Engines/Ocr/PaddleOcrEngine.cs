@@ -20,9 +20,9 @@ public class PaddleOcrEngine : IOcrEngine
         try
         {
             OCRModelConfig config;
-            if (_modelPath == "inference/" && !Directory.Exists(_modelPath))
+            if (_modelPath == "inference/")
             {
-                // 使用默认配置（内置模型）
+                // 使用默认配置（SDK 自动定位内置模型）
                 config = OCRModelConfig.Default;
             }
             else

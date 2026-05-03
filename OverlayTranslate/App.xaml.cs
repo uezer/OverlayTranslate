@@ -16,10 +16,25 @@ namespace OverlayTranslate;
 public partial class App : Application
 {
     public IServiceProvider Services { get; private set; } = null!;
+    private OverlayWindow? _currentOverlay;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // 全局异常处理
+        DispatcherUnhandledException += (_, args) =>
+        {
+            Log.Fatal(args.Exception, "未处理的 UI 异常");
+            MessageBox.Show($"启动异常: {args.Exception.Message}\n\n{args.Exception.StackTrace}",
+                "OverlayTranslate 错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            args.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            var ex = args.ExceptionObject as Exception;
+            Log.Fatal(ex, "未处理的域异常");
+        };
 
         // 加载配置
         var configManager = new ConfigManager();
@@ -47,8 +62,9 @@ public partial class App : Application
 
     public void StartScreenshot()
     {
-        var overlay = Services.GetRequiredService<OverlayWindow>();
-        overlay.ShowForSelection();
+        _currentOverlay?.Close();
+        _currentOverlay = Services.GetRequiredService<OverlayWindow>();
+        _currentOverlay.ShowForSelection();
     }
 
     private void ConfigureServices(IServiceCollection services, ConfigManager configManager)
@@ -56,8 +72,8 @@ public partial class App : Application
         services.AddSingleton(configManager);
         services.AddHttpClient();
 
-        // 注册 OCR 引擎
-        services.AddSingleton<IOcrEngine>(sp =>
+        // 注册 OCR 引擎（具体类型）
+        services.AddSingleton<PaddleOcrEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var modelPath = config.Settings.Ocr.Engines
@@ -66,7 +82,6 @@ public partial class App : Application
             return new PaddleOcrEngine(modelPath);
         });
 
-        // 注册远程 OCR 引擎
         services.AddSingleton<RemoteOcrEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
@@ -78,6 +93,51 @@ public partial class App : Application
                 .GetValueOrDefault("RemoteOCR")
                 ?.GetValueOrDefault("apiKey") ?? "";
             return new RemoteOcrEngine(http, endpoint, apiKey);
+        });
+
+        // 根据配置选择默认 OCR 引擎，带自动回退
+        services.AddSingleton<IOcrEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var activeEngine = config.Settings.Ocr.ActiveEngine;
+            var fallback = config.Settings.Ocr.FallbackEngine;
+
+            IOcrEngine? primary = activeEngine switch
+            {
+                "PaddleOCR" => sp.GetRequiredService<PaddleOcrEngine>(),
+                "RemoteOCR" => sp.GetRequiredService<RemoteOcrEngine>(),
+                _ => sp.GetRequiredService<PaddleOcrEngine>()
+            };
+
+            if (primary.IsAvailable) return primary;
+
+            // 主引擎不可用，尝试回退
+            if (!string.IsNullOrEmpty(fallback))
+            {
+                IOcrEngine? fb = fallback switch
+                {
+                    "PaddleOCR" => sp.GetRequiredService<PaddleOcrEngine>(),
+                    "RemoteOCR" => sp.GetRequiredService<RemoteOcrEngine>(),
+                    _ => null
+                };
+                if (fb?.IsAvailable == true) return fb;
+            }
+
+            // 回退也不可用，尝试另一个
+            if (activeEngine != "RemoteOCR")
+            {
+                var remote = sp.GetRequiredService<RemoteOcrEngine>();
+                if (remote.IsAvailable) return remote;
+            }
+            else
+            {
+                var paddle = sp.GetRequiredService<PaddleOcrEngine>();
+                if (paddle.IsAvailable) return paddle;
+            }
+
+            // 都不可用，返回主引擎（会抛异常，但有日志）
+            Log.Warning("所有 OCR 引擎均不可用，主引擎: {Engine}", activeEngine);
+            return primary;
         });
 
         // 注册翻译引擎（具体类型）
@@ -111,19 +171,59 @@ public partial class App : Application
             return new OpenAiTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("model") ?? "gpt-4o-mini");
         });
 
-        // 根据配置选择默认翻译引擎
+        // 根据配置选择默认翻译引擎，带自动回退（跳过未配置 API key 的引擎）
         services.AddSingleton<ITranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var activeEngine = config.Settings.Translation.ActiveEngine;
-            return activeEngine switch
+            var fallback = config.Settings.Translation.FallbackEngine;
+
+            ITranslationEngine Resolve(string name) => name switch
             {
                 "DeepL" => sp.GetRequiredService<DeepLTranslationEngine>(),
                 "Google" => sp.GetRequiredService<GoogleTranslationEngine>(),
                 "Baidu" => sp.GetRequiredService<BaiduTranslationEngine>(),
                 "OpenAI" => sp.GetRequiredService<OpenAiTranslationEngine>(),
-                _ => sp.GetRequiredService<DeepLTranslationEngine>()
+                _ => sp.GetRequiredService<GoogleTranslationEngine>()
             };
+
+            // 尝试主引擎
+            var primary = Resolve(activeEngine);
+            if (primary.IsAvailable)
+            {
+                Log.Information("使用翻译引擎: {Engine}", primary.Name);
+                return primary;
+            }
+
+            // 主引擎不可用，尝试配置的回退引擎
+            if (!string.IsNullOrEmpty(fallback))
+            {
+                var fb = Resolve(fallback);
+                if (fb.IsAvailable)
+                {
+                    Log.Information("主翻译引擎 {Active} 不可用，使用回退引擎: {Engine}", activeEngine, fb.Name);
+                    return fb;
+                }
+            }
+
+            // 遍历所有引擎，找第一个可用的
+            var allEngines = new ITranslationEngine[]
+            {
+                sp.GetRequiredService<GoogleTranslationEngine>(),
+                sp.GetRequiredService<DeepLTranslationEngine>(),
+                sp.GetRequiredService<BaiduTranslationEngine>(),
+                sp.GetRequiredService<OpenAiTranslationEngine>()
+            };
+            var available = allEngines.FirstOrDefault(e => e.IsAvailable);
+            if (available != null)
+            {
+                Log.Information("主翻译引擎 {Active} 不可用，自动选择: {Engine}", activeEngine, available.Name);
+                return available;
+            }
+
+            // 都不可用
+            Log.Warning("所有翻译引擎均不可用，主引擎: {Engine}", activeEngine);
+            return primary;
         });
 
         // 注册截图与图像处理服务
@@ -147,8 +247,7 @@ public partial class App : Application
 
         // 注册系统托盘与热键
         services.AddSingleton<HotkeyManager>();
-        services.AddSingleton<TrayIconManager>(sp =>
-            new TrayIconManager(() => ((App)Application.Current).StartScreenshot()));
+        services.AddTransient<SettingsWindow>();
         services.AddSingleton<MainWindow>();
     }
 

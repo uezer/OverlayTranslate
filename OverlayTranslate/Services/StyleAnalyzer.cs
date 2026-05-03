@@ -14,14 +14,23 @@ public class TextStyleInfo
 
 public class StyleAnalyzer
 {
-    public TextStyleInfo Analyze(Rect boundingBox, string text)
+    public TextStyleInfo Analyze(Rect boundingBox, string text, Color? backgroundColor = null)
     {
         var estimatedFontSize = boundingBox.Height * 0.75;
+
+        // 根据背景亮度自动选择文字颜色：深色背景用白字，浅色背景用黑字
+        var textColor = Colors.Black;
+        if (backgroundColor.HasValue)
+        {
+            var bg = backgroundColor.Value;
+            var luminance = 0.299 * bg.R + 0.587 * bg.G + 0.114 * bg.B;
+            textColor = luminance < 128 ? Colors.White : Colors.Black;
+        }
 
         return new TextStyleInfo
         {
             FontSize = Math.Max(8, Math.Min(72, estimatedFontSize)),
-            TextColor = Colors.Black,
+            TextColor = textColor,
             IsBold = false,
             RegionWidth = boundingBox.Width,
             RegionHeight = boundingBox.Height

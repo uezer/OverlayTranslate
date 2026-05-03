@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using Serilog;
 
 namespace OverlayTranslate.Infrastructure;
 
@@ -44,8 +45,14 @@ public class HotkeyManager : IDisposable
             };
         }
 
+        if (string.IsNullOrEmpty(key))
+            throw new ArgumentException("Hotkey key cannot be empty", nameof(key));
         uint vk = key.ToUpper()[0];
-        RegisterHotKey(_hWnd, _hotkeyId, modFlags, vk);
+        if (!RegisterHotKey(_hWnd, _hotkeyId, modFlags, vk))
+        {
+            Log.Warning("注册全局热键失败 (ID={Id}, Mod={Mod}, Key={Key})，可能被其他程序占用",
+                _hotkeyId, modFlags, key);
+        }
     }
 
     private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
