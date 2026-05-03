@@ -181,7 +181,7 @@ public partial class App : Application
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
             var cfg = config.Settings.Translation.Engines.GetValueOrDefault("Microsoft");
             var msEndpoint = cfg?.GetValueOrDefault("endpoint");
-            return new MicrosoftTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("region") ?? "", string.IsNullOrEmpty(msEndpoint) ? "https://api.cognitive.microsofttranslator.com" : msEndpoint);
+            return new MicrosoftTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("region") ?? "", string.IsNullOrEmpty(msEndpoint) ? "https://api-edge.cognitive.microsofttranslator.com" : msEndpoint);
         });
 
         // 根据配置选择默认翻译引擎，带自动回退（跳过未配置 API key 的引擎）

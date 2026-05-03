@@ -10,14 +10,14 @@ namespace OverlayTranslate.Engines.Translation;
 public class MicrosoftTranslationEngine : ITranslationEngine
 {
     public string Name => "Microsoft";
-    public bool IsAvailable => !string.IsNullOrEmpty(_apiKey);
+    public bool IsAvailable => true; // Edge 内置端点无需 Key
 
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _region;
     private readonly string _endpoint;
 
-    public MicrosoftTranslationEngine(HttpClient httpClient, string apiKey, string region = "", string endpoint = "https://api.cognitive.microsofttranslator.com")
+    public MicrosoftTranslationEngine(HttpClient httpClient, string apiKey = "", string region = "", string endpoint = "https://api-edge.cognitive.microsofttranslator.com")
     {
         _httpClient = httpClient;
         _apiKey = apiKey;
@@ -33,7 +33,8 @@ public class MicrosoftTranslationEngine : ITranslationEngine
             url += $"&from={MapLanguageCode(from)}";
 
         var request = new HttpRequestMessage(HttpMethod.Post, url);
-        request.Headers.Add("Ocp-Apim-Subscription-Key", _apiKey);
+        if (!string.IsNullOrEmpty(_apiKey))
+            request.Headers.Add("Ocp-Apim-Subscription-Key", _apiKey);
         if (!string.IsNullOrEmpty(_region))
             request.Headers.Add("Ocp-Apim-Subscription-Region", _region);
 
