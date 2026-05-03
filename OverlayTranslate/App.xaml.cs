@@ -175,6 +175,14 @@ public partial class App : Application
             return new OpenAiTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("model") ?? "gpt-4o-mini");
         });
 
+        services.AddSingleton<MicrosoftTranslationEngine>(sp =>
+        {
+            var config = sp.GetRequiredService<ConfigManager>();
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+            var cfg = config.Settings.Translation.Engines.GetValueOrDefault("Microsoft");
+            return new MicrosoftTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("region") ?? "", cfg?.GetValueOrDefault("endpoint") ?? "");
+        });
+
         // 根据配置选择默认翻译引擎，带自动回退（跳过未配置 API key 的引擎）
         services.AddSingleton<ITranslationEngine>(sp =>
         {
@@ -188,6 +196,7 @@ public partial class App : Application
                 "Google" => sp.GetRequiredService<GoogleTranslationEngine>(),
                 "Baidu" => sp.GetRequiredService<BaiduTranslationEngine>(),
                 "OpenAI" => sp.GetRequiredService<OpenAiTranslationEngine>(),
+                "Microsoft" => sp.GetRequiredService<MicrosoftTranslationEngine>(),
                 _ => sp.GetRequiredService<GoogleTranslationEngine>()
             };
 
@@ -216,7 +225,8 @@ public partial class App : Application
                 sp.GetRequiredService<GoogleTranslationEngine>(),
                 sp.GetRequiredService<DeepLTranslationEngine>(),
                 sp.GetRequiredService<BaiduTranslationEngine>(),
-                sp.GetRequiredService<OpenAiTranslationEngine>()
+                sp.GetRequiredService<OpenAiTranslationEngine>(),
+                sp.GetRequiredService<MicrosoftTranslationEngine>()
             };
             var available = allEngines.FirstOrDefault(e => e.IsAvailable);
             if (available != null)
@@ -241,7 +251,8 @@ public partial class App : Application
             ["Google"] = sp.GetRequiredService<GoogleTranslationEngine>(),
             ["DeepL"] = sp.GetRequiredService<DeepLTranslationEngine>(),
             ["百度"] = sp.GetRequiredService<BaiduTranslationEngine>(),
-            ["OpenAI"] = sp.GetRequiredService<OpenAiTranslationEngine>()
+            ["OpenAI"] = sp.GetRequiredService<OpenAiTranslationEngine>(),
+            ["Microsoft"] = sp.GetRequiredService<MicrosoftTranslationEngine>()
         });
 
         // 注册截图与图像处理服务

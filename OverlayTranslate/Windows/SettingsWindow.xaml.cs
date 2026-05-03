@@ -38,7 +38,7 @@ public partial class SettingsWindow : Window
             ? "(无)" : settings.Ocr.FallbackEngine;
 
         // 翻译
-        var transEngines = new[] { "DeepL", "Google", "Baidu", "OpenAI" };
+        var transEngines = new[] { "DeepL", "Google", "Baidu", "OpenAI", "Microsoft" };
         foreach (var e in transEngines) TranslationEngineComboBox.Items.Add(e);
         TranslationEngineComboBox.SelectedItem = settings.Translation.ActiveEngine;
 
@@ -56,6 +56,13 @@ public partial class SettingsWindow : Window
             .GetValueOrDefault("OpenAI")?.GetValueOrDefault("apiKey") ?? "";
         OpenAIModel.Text = settings.Translation.Engines
             .GetValueOrDefault("OpenAI")?.GetValueOrDefault("model") ?? "gpt-4o-mini";
+
+        MicrosoftApiKey.Text = settings.Translation.Engines
+            .GetValueOrDefault("Microsoft")?.GetValueOrDefault("apiKey") ?? "";
+        MicrosoftRegion.Text = settings.Translation.Engines
+            .GetValueOrDefault("Microsoft")?.GetValueOrDefault("region") ?? "";
+        MicrosoftEndpoint.Text = settings.Translation.Engines
+            .GetValueOrDefault("Microsoft")?.GetValueOrDefault("endpoint") ?? "";
 
         // 语言
         var languages = new[] { "auto", "zh", "zh-CN", "en", "ja", "ko", "fr", "de", "es", "ru" };
@@ -124,6 +131,12 @@ public partial class SettingsWindow : Window
         {
             ["apiKey"] = OpenAIApiKey.Text,
             ["model"] = OpenAIModel.Text
+        };
+        settings.Translation.Engines["Microsoft"] = new Dictionary<string, string>
+        {
+            ["apiKey"] = MicrosoftApiKey.Text,
+            ["region"] = MicrosoftRegion.Text,
+            ["endpoint"] = MicrosoftEndpoint.Text
         };
 
         // 语言

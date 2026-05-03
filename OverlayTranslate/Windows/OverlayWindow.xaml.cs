@@ -129,6 +129,10 @@ public partial class OverlayWindow : Window
         Toolbar.SetEngines(
             ocrNames.Select(MapOcrDisplayName).ToArray(),
             transNames.Select(MapTranslationDisplayName).ToArray());
+
+        // 最小化/恢复模式：避免首次 Show 时最大化动画导致白屏闪烁
+        Loaded += (_, _) => WindowState = WindowState.Maximized;
+        WindowState = WindowState.Minimized;
     }
 
     public void ShowForSelection()
