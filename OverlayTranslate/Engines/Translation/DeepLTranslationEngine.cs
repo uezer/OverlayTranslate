@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using OverlayTranslate.Models;
 
 namespace OverlayTranslate.Engines.Translation;
@@ -20,7 +21,7 @@ public class DeepLTranslationEngine : ITranslationEngine
         _freeTier = freeTier;
     }
 
-    public async Task<TranslationResult> TranslateAsync(string text, string from, string to)
+    public async Task<TranslationResult> TranslateAsync(string text, string from, string to, CancellationToken ct = default)
     {
         var baseUrl = _freeTier
             ? "https://api-free.deepl.com/v2/translate"
@@ -35,10 +36,10 @@ public class DeepLTranslationEngine : ITranslationEngine
             ["source_lang"] = from == "auto" ? "" : from.ToUpperInvariant()
         });
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(json);
         var translated = doc.RootElement.GetProperty("translations")[0];
 

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using System.Windows;
 using OverlayTranslate.Models;
 using PaddleOCRSharp;
@@ -43,7 +44,7 @@ public class PaddleOcrEngine : IOcrEngine
         }
     }
 
-    public async Task<OcrResult> RecognizeAsync(byte[] imageData, string language = "auto")
+    public async Task<OcrResult> RecognizeAsync(byte[] imageData, string language = "auto", CancellationToken ct = default)
     {
         if (_engine == null)
             throw new InvalidOperationException("PaddleOCR 引擎未初始化");

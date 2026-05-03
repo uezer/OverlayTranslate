@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using OverlayTranslate.Models;
 
 namespace OverlayTranslate.Engines.Translation;
@@ -16,12 +17,14 @@ public class GoogleTranslationEngine : ITranslationEngine
         _httpClient = httpClient;
     }
 
-    public async Task<TranslationResult> TranslateAsync(string text, string from, string to)
+    public async Task<TranslationResult> TranslateAsync(string text, string from, string to, CancellationToken ct = default)
     {
         var sl = from == "auto" ? "auto" : from;
         var url = $"https://translate.googleapis.com/translate_a/single?client=gtx&sl={sl}&tl={to}&dt=t&q={Uri.EscapeDataString(text)}";
 
-        var response = await _httpClient.GetStringAsync(url);
+        using var httpResponse = await _httpClient.GetAsync(url, ct);
+        httpResponse.EnsureSuccessStatusCode();
+        var response = await httpResponse.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(response);
         var sentences = doc.RootElement[0];
 

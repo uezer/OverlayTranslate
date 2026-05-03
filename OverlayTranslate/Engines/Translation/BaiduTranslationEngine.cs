@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using OverlayTranslate.Models;
 
 namespace OverlayTranslate.Engines.Translation;
@@ -22,7 +23,7 @@ public class BaiduTranslationEngine : ITranslationEngine
         _secret = secret;
     }
 
-    public async Task<TranslationResult> TranslateAsync(string text, string from, string to)
+    public async Task<TranslationResult> TranslateAsync(string text, string from, string to, CancellationToken ct = default)
     {
         var salt = Random.Shared.Next(10000).ToString();
         var sign = ComputeMd5($"{_appId}{text}{salt}{_secret}");
@@ -39,10 +40,10 @@ public class BaiduTranslationEngine : ITranslationEngine
 
         var response = await _httpClient.PostAsync(
             "https://fanyi-api.baidu.com/api/trans/vip/translate",
-            new FormUrlEncodedContent(parameters));
+            new FormUrlEncodedContent(parameters), ct);
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(json);
         var results = doc.RootElement.GetProperty("trans_result");
 

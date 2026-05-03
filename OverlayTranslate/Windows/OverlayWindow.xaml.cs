@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -47,7 +48,7 @@ public partial class OverlayWindow : Window
     private byte[]? _screenshotData;
     private string _originalText = "";
     private string _translatedText = "";
-    private int _selectionGeneration;
+    private CancellationTokenSource _cts = new();
     private double _screenshotDpiX = 96;
     private double _screenshotDpiY = 96;
     private bool _autoPositionToolbar = true;
@@ -234,8 +235,8 @@ public partial class OverlayWindow : Window
 
         Mask.SetSelection(_currentSelection);
         SelectionLayer.UpdateSelection(_currentSelection);
-        var generation = ++_selectionGeneration;
-        _ = ProcessSelectionAsync(_currentSelection, generation);
+        CancelAndStart();
+        _ = ProcessSelectionAsync(_currentSelection, _cts.Token);
         base.OnMouseLeftButtonUp(e);
     }
 
@@ -243,7 +244,7 @@ public partial class OverlayWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            _selectionGeneration++;
+            CancelAndStart();
             ExitOverlay();
             e.Handled = true;
         }
@@ -252,7 +253,7 @@ public partial class OverlayWindow : Window
 
     protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
     {
-        _selectionGeneration++;
+        CancelAndStart();
         ExitOverlay();
         e.Handled = true;
         base.OnMouseRightButtonDown(e);
@@ -260,21 +261,22 @@ public partial class OverlayWindow : Window
 
     // ============ 核心处理流程 ============
 
-    private async Task ProcessSelectionAsync(Rect selection, int generation)
+    private async Task ProcessSelectionAsync(Rect selection, CancellationToken ct)
     {
         if (_state == OverlayState.Exiting || _screenshotData == null) return;
 
         _state = OverlayState.Processing;
+        Toolbar.SetLoading(true);
 
         try
         {
             // === 阶段 1：OCR + 原文覆盖 ===
+            ct.ThrowIfCancellationRequested();
             var regionImage = _screenshotService.CropRegion(_screenshotData, selection);
-            if (_selectionGeneration != generation) return;
 
             var ocrEngine = GetCurrentOcrEngine();
-            var ocrResult = await ocrEngine.RecognizeAsync(regionImage);
-            if (_selectionGeneration != generation) return;
+            var ocrResult = await ocrEngine.RecognizeAsync(regionImage, ct: ct);
+            ct.ThrowIfCancellationRequested();
 
             if (ocrResult.TextBlocks.Count == 0)
             {
@@ -313,8 +315,7 @@ public partial class OverlayWindow : Window
             var translationEngine = GetCurrentTranslationEngine();
 
             // 尝试整段翻译，再按行匹配
-            var translationResult = await translationEngine.TranslateAsync(_originalText, sourceLang, targetLang);
-            if (_selectionGeneration != generation) return;
+            var translationResult = await translationEngine.TranslateAsync(_originalText, sourceLang, targetLang, ct);
 
             _translatedText = translationResult.TranslatedText;
             Log.Information("翻译: {Text}", _translatedText.Length > 50 ? _translatedText[..50] + "..." : _translatedText);
@@ -334,8 +335,7 @@ public partial class OverlayWindow : Window
                 foreach (var block in blocks)
                 {
                     if (string.IsNullOrWhiteSpace(block.Text)) continue;
-                    var r = await translationEngine.TranslateAsync(block.Text, sourceLang, targetLang);
-                    if (_selectionGeneration != generation) return;
+                    var r = await translationEngine.TranslateAsync(block.Text, sourceLang, targetLang, ct);
                     translatedBlocks.Add((r.TranslatedText, block.BoundingBox));
                 }
             }
@@ -350,7 +350,6 @@ public partial class OverlayWindow : Window
             _translatedStyle = ComputeStyle(blocks, selection, dpiScaleY, wpfBgColor);
 
             _filledImageBytes = _imageProcessor.FillRegion(_screenshotData, selection, bgColor);
-            if (_selectionGeneration != generation) return;
 
             // 自动切换到译文视图
             Toolbar.SetData(_originalText, _translatedText);
@@ -358,10 +357,13 @@ public partial class OverlayWindow : Window
             Toolbar.SetViewMode(OverlayViewMode.TranslatedText);
             Toolbar.SetLoading(false);
         }
+        catch (OperationCanceledException)
+        {
+            Toolbar.SetLoading(false);
+        }
         catch (Exception ex)
         {
             Toolbar.SetLoading(false);
-            if (_selectionGeneration != generation) return;
             Log.Error(ex, "处理选区失败");
             _state = OverlayState.Selecting;
 
@@ -502,20 +504,26 @@ public partial class OverlayWindow : Window
     {
         if (_state != OverlayState.Result || _screenshotData == null) return;
         _filledImageBytes = null;
-        _selectionGeneration++;
-        _ = ProcessSelectionAsync(_currentSelection, _selectionGeneration);
+        CancelAndStart();
+        _ = ProcessSelectionAsync(_currentSelection, _cts.Token);
     }
 
     private void RerunTranslation()
     {
         if (_state != OverlayState.Result || _screenshotData == null || string.IsNullOrEmpty(_originalText)) return;
-        _selectionGeneration++;
-        _ = ReTranslateAsync();
+        CancelAndStart();
+        _ = ReTranslateAsync(_cts.Token);
     }
 
-    private async Task ReTranslateAsync()
+    private void CancelAndStart()
     {
-        var gen = _selectionGeneration;
+        _cts.Cancel();
+        _cts.Dispose();
+        _cts = new CancellationTokenSource();
+    }
+
+    private async Task ReTranslateAsync(CancellationToken ct)
+    {
         Toolbar.SetLoading(true);
         try
         {
@@ -529,9 +537,9 @@ public partial class OverlayWindow : Window
             var allTexts = new List<string>();
             foreach (var block in blocks)
             {
+                ct.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(block.Text)) continue;
-                var r = await engine.TranslateAsync(block.Text, sourceLang, targetLang);
-                if (_selectionGeneration != gen) return;
+                var r = await engine.TranslateAsync(block.Text, sourceLang, targetLang, ct);
                 translatedBlocks.Add((r.TranslatedText, block.BoundingBox));
                 allTexts.Add(r.TranslatedText);
             }
@@ -546,7 +554,7 @@ public partial class OverlayWindow : Window
                 _filledImageBytes = _imageProcessor.FillRegion(_screenshotData!, _currentSelection, bgColor);
             }
 
-            if (_selectionGeneration != gen) return;
+            ct.ThrowIfCancellationRequested();
 
             // 如果当前在译文视图，更新覆盖
             if (_viewMode == OverlayViewMode.TranslatedText)
@@ -560,10 +568,13 @@ public partial class OverlayWindow : Window
             Toolbar.SetData(_originalText, _translatedText);
             Toolbar.SetLoading(false);
         }
+        catch (OperationCanceledException)
+        {
+            Toolbar.SetLoading(false);
+        }
         catch (Exception ex)
         {
             Toolbar.SetLoading(false);
-            if (_selectionGeneration != gen) return;
             Log.Error(ex, "重新翻译失败");
         }
     }
@@ -618,7 +629,7 @@ public partial class OverlayWindow : Window
     private void HandleReselect()
     {
         _autoPositionToolbar = true;
-        _selectionGeneration++;
+        CancelAndStart();
         _state = OverlayState.Selecting;
         Mask.ClearSelection();
         SelectionLayer.ClearSelection();
@@ -635,6 +646,7 @@ public partial class OverlayWindow : Window
     private void ExitOverlay()
     {
         _state = OverlayState.Exiting;
+        _cts.Cancel();
         Mask.ClearSelection();
         SelectionLayer.ClearSelection();
         TextOverlayCanvas.Children.Clear();

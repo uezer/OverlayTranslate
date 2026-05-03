@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading;
 using OverlayTranslate.Models;
 
 namespace OverlayTranslate.Engines.Translation;
@@ -22,7 +23,7 @@ public class OpenAiTranslationEngine : ITranslationEngine
         _model = model;
     }
 
-    public async Task<TranslationResult> TranslateAsync(string text, string from, string to)
+    public async Task<TranslationResult> TranslateAsync(string text, string from, string to, CancellationToken ct = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
@@ -36,10 +37,10 @@ public class OpenAiTranslationEngine : ITranslationEngine
             }
         });
 
-        var response = await _httpClient.SendAsync(request);
+        var response = await _httpClient.SendAsync(request, ct);
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(json);
         var translatedText = doc.RootElement
             .GetProperty("choices")[0]

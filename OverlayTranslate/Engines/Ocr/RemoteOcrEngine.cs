@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Threading;
 using System.Windows;
 using OverlayTranslate.Models;
 using Serilog;
@@ -23,7 +24,7 @@ public class RemoteOcrEngine : IOcrEngine
         _apiKey = apiKey;
     }
 
-    public async Task<OcrResult> RecognizeAsync(byte[] imageData, string language = "auto")
+    public async Task<OcrResult> RecognizeAsync(byte[] imageData, string language = "auto", CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(_endpoint))
             throw new InvalidOperationException("远程 OCR 端点未配置");
@@ -39,10 +40,10 @@ public class RemoteOcrEngine : IOcrEngine
         if (!string.IsNullOrEmpty(_apiKey))
             httpRequest.Headers.Add("Authorization", $"Bearer {_apiKey}");
 
-        var response = await _httpClient.SendAsync(httpRequest);
+        var response = await _httpClient.SendAsync(httpRequest, ct);
         response.EnsureSuccessStatusCode();
 
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
