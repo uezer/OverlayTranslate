@@ -26,8 +26,8 @@ public partial class MainWindow : Window
 
         _trayManager.Initialize();
 
-        // 注册全局热键 Ctrl+Alt+T 触发截图翻译
-        _hotkeyManager.Register(this, ["Ctrl", "Alt"], "T", () =>
+        // 注册全局热键 Ctrl+Shift+T 触发截图翻译
+        _hotkeyManager.Register(this, ["Ctrl", "Shift"], "T", () =>
         {
             app.StartScreenshot();
         });
