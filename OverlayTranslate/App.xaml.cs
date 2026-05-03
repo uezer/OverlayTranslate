@@ -71,7 +71,7 @@ public partial class App : Application
         });
 
         // 注册翻译引擎
-        services.AddSingleton<DeepLTranslationEngine>(sp =>
+        services.AddSingleton<ITranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
@@ -79,13 +79,13 @@ public partial class App : Application
             return new DeepLTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("freeTier") == "true");
         });
 
-        services.AddSingleton<GoogleTranslationEngine>(sp =>
+        services.AddSingleton<ITranslationEngine>(sp =>
         {
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
             return new GoogleTranslationEngine(http);
         });
 
-        services.AddSingleton<BaiduTranslationEngine>(sp =>
+        services.AddSingleton<ITranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
@@ -93,7 +93,7 @@ public partial class App : Application
             return new BaiduTranslationEngine(http, cfg?.GetValueOrDefault("appId") ?? "", cfg?.GetValueOrDefault("secret") ?? "");
         });
 
-        services.AddSingleton<OpenAiTranslationEngine>(sp =>
+        services.AddSingleton<ITranslationEngine>(sp =>
         {
             var config = sp.GetRequiredService<ConfigManager>();
             var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
