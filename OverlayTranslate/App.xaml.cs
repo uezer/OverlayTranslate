@@ -5,6 +5,7 @@ using OverlayTranslate.Engines;
 using OverlayTranslate.Engines.Ocr;
 using OverlayTranslate.Engines.Translation;
 using OverlayTranslate.Infrastructure;
+using OverlayTranslate.Services;
 using Serilog;
 using Serilog.Events;
 
@@ -100,6 +101,12 @@ public partial class App : Application
             var cfg = config.Settings.Translation.Engines.GetValueOrDefault("OpenAI");
             return new OpenAiTranslationEngine(http, cfg?.GetValueOrDefault("apiKey") ?? "", cfg?.GetValueOrDefault("model") ?? "gpt-4o-mini");
         });
+
+        // 注册截图与图像处理服务
+        services.AddSingleton<ScreenshotService>();
+        services.AddSingleton<ImageProcessor>();
+        services.AddSingleton<StyleAnalyzer>();
+        services.AddSingleton<TextRenderer>();
     }
 
     protected override void OnExit(ExitEventArgs e)
