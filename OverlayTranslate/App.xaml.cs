@@ -7,6 +7,7 @@ using OverlayTranslate.Engines.Translation;
 using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Python;
 using OverlayTranslate.Services;
+using OverlayTranslate.ViewModels;
 using OverlayTranslate.Windows;
 using Serilog;
 using Serilog.Events;
@@ -261,6 +262,9 @@ public partial class App : Application
 
         // 注册翻译管线服务
         services.AddSingleton<TranslationPipeline>();
+
+        // 注册覆盖层窗口 ViewModel（Transient 每次创建新实例）
+        services.AddTransient<OverlayWindowViewModel>();
 
         // 注册覆盖层窗口（Transient 每次创建新实例）
         services.AddTransient<OverlayWindow>();

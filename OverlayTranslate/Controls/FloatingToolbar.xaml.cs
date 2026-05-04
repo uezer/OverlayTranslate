@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using OverlayTranslate.Models;
 using OverlayTranslate.Windows;
 
 namespace OverlayTranslate.Controls;

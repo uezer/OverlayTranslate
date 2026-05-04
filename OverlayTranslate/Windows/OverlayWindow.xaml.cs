@@ -13,22 +13,6 @@ using Serilog;
 
 namespace OverlayTranslate.Windows;
 
-public enum OverlayState
-{
-    Idle,
-    Selecting,
-    Processing,
-    Result,
-    Exiting
-}
-
-public enum OverlayViewMode
-{
-    OriginalImage,
-    OriginalText,
-    TranslatedText
-}
-
 public partial class OverlayWindow : Window
 {
     private readonly ScreenshotService _screenshotService;
