@@ -5,6 +5,7 @@ using OverlayTranslate.Engines;
 using OverlayTranslate.Engines.Ocr;
 using OverlayTranslate.Engines.Translation;
 using OverlayTranslate.Infrastructure;
+using OverlayTranslate.Localization;
 using OverlayTranslate.Services;
 using OverlayTranslate.ViewModels;
 using OverlayTranslate.Windows;
@@ -26,8 +27,8 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             Log.Fatal(args.Exception, "未处理的 UI 异常");
-            MessageBox.Show($"启动异常: {args.Exception.Message}\n\n{args.Exception.StackTrace}",
-                "OverlayTranslate 错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"{LocManager.Get("App_StartupException")} {args.Exception.Message}\n\n{args.Exception.StackTrace}",
+                LocManager.Get("App_StartupError"), MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
@@ -58,6 +59,9 @@ public partial class App : Application
         // 初始化主题
         var theme = configManager.Settings.Other.Theme;
         ThemeManager.SetTheme(theme);
+
+        // 初始化多语言
+        LocManager.Initialize(configManager.Settings.Other.Locale);
 
         // 显示主窗口（托盘宿主）
         var mainWindow = Services.GetRequiredService<MainWindow>();
