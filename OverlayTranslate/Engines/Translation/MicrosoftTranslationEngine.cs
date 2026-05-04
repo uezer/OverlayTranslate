@@ -116,7 +116,7 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
             var paramsMatch = ParamsRegex().Match(html);
             if (paramsMatch.Success)
             {
-                var arr = JsonDocument.Parse(paramsMatch.Value);
+                var arr = JsonDocument.Parse(paramsMatch.Groups[1].Value);
                 var root = arr.RootElement;
                 _key = root[0].GetInt64().ToString();
                 _token = root[1].GetString() ?? "";
