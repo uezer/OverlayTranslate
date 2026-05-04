@@ -26,12 +26,11 @@ OverlayTranslate 把这个流程压缩成一步：
 - **智能文字颜色**——深色背景用白字，浅色背景用黑字
 - **浅色 / 深色 / 跟随系统主题**
 
-## 快速开始
+## 安装
 
-### 环境要求
+从 [Releases](https://github.com/Ezer013/OverlayTranslate/releases) 下载最新版安装包。
 
-- Windows 10/11（x64）
-- .NET 10.0 运行时
+**环境要求：** Windows 10/11（x64）+ [.NET 10.0 运行时](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ### 从源码构建
 
@@ -41,6 +40,14 @@ cd OverlayTranslate
 dotnet build
 dotnet run --project OverlayTranslate
 ```
+
+打包安装包（需安装 [Inno Setup 6](https://jrsoftware.org/isinfo.php)）：
+
+```powershell
+.\build.ps1
+```
+
+## 快速开始
 
 ### 使用方法
 

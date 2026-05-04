@@ -24,6 +24,12 @@ The translated text overlays the original content in place — you keep reading 
 - **Auto Text Color** — white on dark backgrounds, black on light backgrounds
 - **Light / Dark / System Theme** — full theme support
 
+## Install
+
+Download the latest installer from [Releases](https://github.com/Ezer013/OverlayTranslate/releases).
+
+**Requirements:** Windows 10/11 (x64) + [.NET 10.0 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+
 ## Quick Start
 
 ### Requirements
