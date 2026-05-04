@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:chrome="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:hc="https://handyorg.github.io/handycontrol"
-        Title="OverlayTranslate 设置" Width="520" Height="620"
+        xmlns:loc="clr-namespace:OverlayTranslate.Localization"
+        Title="{loc:Loc Settings_Title}" Width="520" Height="620"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
         Style="{DynamicResource ThemedWindowStyle}">
     <Grid Margin="16">
@@ -14,20 +15,20 @@
 
         <TabControl chrome:WindowChrome.IsHitTestVisibleInChrome="True">
             <!-- OCR 设置 -->
-            <TabItem Header="OCR">
+            <TabItem Header="{loc:Loc Settings_OcrTab}">
                 <StackPanel Margin="12">
-                    <TextBlock Text="默认 OCR 引擎:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_DefaultOcrEngine}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox ItemsSource="{Binding OcrEngineNames}" SelectedItem="{Binding SelectedOcrEngine}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                    <TextBlock Text="PaddleOCR" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Engine_PaddleOCR}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="模型路径:" Width="80" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Loc Settings_ModelPath}" Width="80" VerticalAlignment="Center" />
                         <TextBox Text="{Binding PaddleModelPath}" Width="280" />
                     </StackPanel>
 
-                    <TextBlock Text="远程 OCR" FontWeight="SemiBold" Margin="0,8,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_RemoteOcr}" FontWeight="SemiBold" Margin="0,8,0,4" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="端点 URL:" Width="80" VerticalAlignment="Center" />
+                        <TextBlock Text="{loc:Loc Settings_EndpointUrl}" Width="80" VerticalAlignment="Center" />
                         <TextBox Text="{Binding RemoteOcrEndpoint}" Width="280" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
@@ -35,66 +36,66 @@
                         <TextBox Text="{Binding RemoteOcrApiKey}" Width="280" />
                     </StackPanel>
 
-                    <TextBlock Text="回退引擎:" FontWeight="SemiBold" Margin="0,8,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_FallbackEngine}" FontWeight="SemiBold" Margin="0,8,0,4" />
                     <ComboBox ItemsSource="{Binding FallbackOptions}" SelectedItem="{Binding SelectedOcrFallback}" Width="200" HorizontalAlignment="Left" />
                 </StackPanel>
             </TabItem>
 
             <!-- 翻译设置 -->
-            <TabItem Header="翻译">
+            <TabItem Header="{loc:Loc Settings_TranslationTab}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12">
-                        <TextBlock Text="默认翻译引擎:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Loc Settings_DefaultTranslationEngine}" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <ComboBox ItemsSource="{Binding TranslationEngineNames}" SelectedItem="{Binding SelectedTranslationEngine}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                        <TextBlock Text="DeepL" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Loc Engine_DeepL}" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="API Key:" Width="80" VerticalAlignment="Center" />
                             <TextBox Text="{Binding DeepLApiKey}" Width="280" />
                         </StackPanel>
-                        <CheckBox IsChecked="{Binding DeepLFreeTier}" Content="免费版 (api-free.deepl.com)" Margin="80,0,0,12" />
+                        <CheckBox IsChecked="{Binding DeepLFreeTier}" Content="{loc:Loc Settings_FreeTier}" Margin="80,0,0,12" />
 
-                        <TextBlock Text="百度翻译" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Loc Settings_BaiduTranslation}" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="App ID:" Width="80" VerticalAlignment="Center" />
                             <TextBox Text="{Binding BaiduAppId}" Width="280" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="密钥:" Width="80" VerticalAlignment="Center" />
+                            <TextBlock Text="{loc:Loc Settings_Secret}" Width="80" VerticalAlignment="Center" />
                             <TextBox Text="{Binding BaiduSecret}" Width="280" />
                         </StackPanel>
 
-                        <TextBlock Text="OpenAI" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Loc Engine_OpenAI}" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="API Key:" Width="80" VerticalAlignment="Center" />
                             <TextBox Text="{Binding OpenAiApiKey}" Width="280" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="模型:" Width="80" VerticalAlignment="Center" />
+                            <TextBlock Text="{loc:Loc Settings_Model}" Width="80" VerticalAlignment="Center" />
                             <TextBox Text="{Binding OpenAiModel}" Width="280" />
                         </StackPanel>
 
-                        <TextBlock Text="Microsoft (Bing 翻译)" FontWeight="SemiBold" Margin="0,0,0,4" />
-                        <TextBlock Text="无需配置，直接使用" FontSize="11" Margin="80,0,0,12" />
+                        <TextBlock Text="{loc:Loc Settings_MicrosoftTranslation}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="{loc:Loc Settings_NoConfigNeeded}" FontSize="11" Margin="80,0,0,12" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <!-- 语言设置 -->
-            <TabItem Header="语言">
+            <TabItem Header="{loc:Loc Settings_LanguageTab}">
                 <StackPanel Margin="12">
-                    <TextBlock Text="默认源语言:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_DefaultSourceLang}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SourceLanguage}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                    <TextBlock Text="默认目标语言:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_DefaultTargetLang}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding TargetLanguage}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
                 </StackPanel>
             </TabItem>
 
             <!-- 热键设置 -->
-            <TabItem Header="热键">
+            <TabItem Header="{loc:Loc Settings_HotkeyTab}">
                 <StackPanel Margin="12">
-                    <TextBlock Text="截图翻译快捷键:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_ScreenshotHotkey}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                         <CheckBox IsChecked="{Binding HotkeyCtrl}" Content="Ctrl" Margin="0,0,8,0" />
                         <CheckBox IsChecked="{Binding HotkeyAlt}" Content="Alt" Margin="0,0,8,0" />
@@ -106,33 +107,36 @@
             </TabItem>
 
             <!-- 其他设置 -->
-            <TabItem Header="其他">
+            <TabItem Header="{loc:Loc Settings_OtherTab}">
                 <StackPanel Margin="12">
-                    <TextBlock Text="日志级别:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_LogLevel}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding SelectedLogLevel}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                    <TextBlock Text="日志文件路径:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_LogFilePath}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <TextBox Text="{Binding LogFile}" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                    <TextBlock Text="Python 运行时路径:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_PythonRuntimePath}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <TextBox Text="{Binding PythonRuntimePath}" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
-                    <TextBlock Text="留空表示不使用 Python" FontSize="11" />
+                    <TextBlock Text="{loc:Loc Settings_PythonHint}" FontSize="11" />
 
-                    <TextBlock Text="主题:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_Theme}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                    <TextBlock Text="字号模式:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_UiLanguage}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{Binding LocaleOptions}" SelectedItem="{Binding SelectedLocale}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+
+                    <TextBlock Text="{loc:Loc Settings_FontSizeMode}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <ComboBox ItemsSource="{Binding FontModes}" SelectedItem="{Binding SelectedFontMode}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
-                    <TextBlock Text="自定义字号:" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{loc:Loc Settings_CustomFontSize}" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <TextBox Text="{Binding CustomFontSize}" Width="100" HorizontalAlignment="Left" Margin="0,0,0,12" />
                 </StackPanel>
             </TabItem>
         </TabControl>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="保存" Width="80" Height="30" Click="OnSaveClick" Margin="0,0,8,0" />
-            <Button Content="取消" Width="80" Height="30" Click="OnCancelClick" />
+            <Button Content="{loc:Loc Settings_Save}" Width="80" Height="30" Click="OnSaveClick" Margin="0,0,8,0" />
+            <Button Content="{loc:Loc Settings_Cancel}" Width="80" Height="30" Click="OnCancelClick" />
         </StackPanel>
     </Grid>
 </Window>
