@@ -1,5 +1,7 @@
 # OverlayTranslate
 
+[中文](README.zh-CN.md) | English
+
 A Windows overlay translation tool that OCRs and translates text right on your screen — no switching windows, no copy-pasting.
 
 ## What Makes It Different
@@ -44,6 +46,12 @@ git clone https://github.com/Ezer013/OverlayTranslate.git
 cd OverlayTranslate
 dotnet build
 dotnet run --project OverlayTranslate
+```
+
+Build installer (requires [Inno Setup 6](https://jrsoftware.org/isinfo.php)):
+
+```powershell
+.\build.ps1
 ```
 
 ### Usage

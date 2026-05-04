@@ -1,5 +1,7 @@
 # OverlayTranslate
 
+English | [中文](README.zh-CN.md)
+
 Windows 覆盖翻译工具——框选屏幕区域，OCR 识别原文，译文直接覆盖显示在原位，无需切换窗口、无需复制粘贴。
 
 ## 覆盖翻译，所见即所得
