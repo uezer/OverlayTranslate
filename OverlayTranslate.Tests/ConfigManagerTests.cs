@@ -27,8 +27,8 @@ public class ConfigManagerTests : IDisposable
 
     private ConfigManager CreateManager()
     {
-        // ConfigManager uses AppDomain.CurrentDomain.BaseDirectory, so we test with a temp approach
-        return new ConfigManager();
+        // 使用测试专用的配置路径
+        return new ConfigManager(_configPath);
     }
 
     [Fact]
