@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using OverlayTranslate.Models;
+using Serilog;
 
 namespace OverlayTranslate.Engines.Translation;
 
@@ -15,6 +16,7 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
     private readonly HttpClient _httpClient;
 
     // Bing 翻译网页抓取的认证参数
+    private string _host = "www.bing.com";
     private string _ig = "";
     private string _iid = "";
     private string _key = "";
@@ -29,6 +31,7 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0");
         _httpClient.DefaultRequestHeaders.Referrer = new Uri("https://www.bing.com/translator");
+        _httpClient.DefaultRequestHeaders.Add("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
     }
 
     public async Task<TranslationResult> TranslateAsync(string text, string from, string to, CancellationToken ct = default)
@@ -52,7 +55,7 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
                 ["tryFetchingGenderDebiasedTranslations"] = "true"
             };
 
-            var url = $"https://www.bing.com/ttranslatev3?isVertical=1&IG={_ig}&IID={_iid}";
+            var url = $"https://{_host}/ttranslatev3?isVertical=1&IG={_ig}&IID={_iid}";
             var response = await _httpClient.PostAsync(url, new FormUrlEncodedContent(form), ct);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -63,9 +66,18 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
 
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync(ct);
+            Log.Debug("Bing 翻译响应: {Json}", json.Length > 200 ? json[..200] + "..." : json);
 
-            if (json.Contains("ShowCaptcha"))
+            if (string.IsNullOrWhiteSpace(json) || json.Contains("ShowCaptcha"))
             {
+                if (json.Contains("ShowCaptcha")) Log.Warning("Bing 翻译触发验证码");
+                await RefreshTokenAsync(ct);
+                continue;
+            }
+
+            if (!json.TrimStart().StartsWith("["))
+            {
+                Log.Warning("Bing 翻译返回非 JSON: {Resp}", json.Length > 200 ? json[..200] : json);
                 await RefreshTokenAsync(ct);
                 continue;
             }
@@ -105,13 +117,23 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
             if (!string.IsNullOrEmpty(_token) && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - _tokenTs < _tokenExpiryInterval)
                 return;
 
-            var html = await _httpClient.GetStringAsync("https://www.bing.com/translator", ct);
+            // 先用 HEAD 检测实际域名（国内可能重定向到 cn.bing.com）
+            var headReq = new HttpRequestMessage(HttpMethod.Head, $"https://www.bing.com/translator");
+            var headResp = await _httpClient.SendAsync(headReq, HttpCompletionOption.ResponseHeadersRead, ct);
+            var actualHost = headResp.RequestMessage?.RequestUri?.Host ?? "www.bing.com";
+            _host = actualHost;
+            Log.Debug("Bing translator 实际域名: {Host}", _host);
+
+            var html = await _httpClient.GetStringAsync($"https://{_host}/translator", ct);
+            Log.Debug("Bing translator 页面长度: {Len}", html.Length);
 
             var igMatch = IgRegex().Match(html);
             if (igMatch.Success) _ig = igMatch.Groups[1].Value;
+            else Log.Warning("Bing translator 页面未找到 IG");
 
             var iidMatch = IidRegex().Match(html);
             if (iidMatch.Success) _iid = iidMatch.Groups[1].Value;
+            else Log.Warning("Bing translator 页面未找到 IID");
 
             var paramsMatch = ParamsRegex().Match(html);
             if (paramsMatch.Success)
@@ -122,6 +144,11 @@ public partial class MicrosoftTranslationEngine : ITranslationEngine
                 _token = root[1].GetString() ?? "";
                 _tokenExpiryInterval = root[2].GetInt64();
                 _tokenTs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                Log.Debug("Bing token 获取成功: key={Key}, token={Token}", _key, _token.Length > 10 ? _token[..10] + "..." : _token);
+            }
+            else
+            {
+                Log.Warning("Bing translator 页面未找到 params_AbusePreventionHelper");
             }
         }
         finally
