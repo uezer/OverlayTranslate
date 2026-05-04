@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using H.NotifyIcon;
+using OverlayTranslate.Localization;
 
 namespace OverlayTranslate.Infrastructure;
 
@@ -11,6 +12,9 @@ public class TrayIconManager : IDisposable
     private readonly TaskbarIcon _trayIcon;
     private readonly Action _onScreenshotRequested;
     private readonly Action _onOpenSettings;
+    private MenuItem? _screenshotItem;
+    private MenuItem? _settingsItem;
+    private MenuItem? _exitItem;
 
     public TrayIconManager(TaskbarIcon trayIcon, Action onScreenshotRequested, Action onOpenSettings)
     {
@@ -30,21 +34,30 @@ public class TrayIconManager : IDisposable
     private ContextMenu CreateContextMenu()
     {
         var menu = new ContextMenu();
-        var screenshotItem = new MenuItem { Header = "截图翻译" };
-        screenshotItem.Click += (_, _) => _onScreenshotRequested();
-        menu.Items.Add(screenshotItem);
+        _screenshotItem = new MenuItem { Header = LocManager.Get("Tray_ScreenshotTranslate") };
+        _screenshotItem.Click += (_, _) => _onScreenshotRequested();
+        menu.Items.Add(_screenshotItem);
 
-        var settingsItem = new MenuItem { Header = "设置" };
-        settingsItem.Click += (_, _) => _onOpenSettings();
-        menu.Items.Add(settingsItem);
+        _settingsItem = new MenuItem { Header = LocManager.Get("Tray_Settings") };
+        _settingsItem.Click += (_, _) => _onOpenSettings();
+        menu.Items.Add(_settingsItem);
 
         menu.Items.Add(new Separator());
 
-        var exitItem = new MenuItem { Header = "退出" };
-        exitItem.Click += (_, _) => Application.Current.Shutdown();
-        menu.Items.Add(exitItem);
+        _exitItem = new MenuItem { Header = LocManager.Get("Tray_Exit") };
+        _exitItem.Click += (_, _) => Application.Current.Shutdown();
+        menu.Items.Add(_exitItem);
+
+        LocManager.Changed += RefreshMenuText;
 
         return menu;
+    }
+
+    private void RefreshMenuText()
+    {
+        if (_screenshotItem != null) _screenshotItem.Header = LocManager.Get("Tray_ScreenshotTranslate");
+        if (_settingsItem != null) _settingsItem.Header = LocManager.Get("Tray_Settings");
+        if (_exitItem != null) _exitItem.Header = LocManager.Get("Tray_Exit");
     }
 
     public void Dispose()
