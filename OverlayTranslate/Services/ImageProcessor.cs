@@ -64,6 +64,28 @@ public class ImageProcessor
         return buf.ToArray();
     }
 
+    /// <summary>
+    /// 填充多个区域（仅对译文块区域进行底色重绘，而非整个选区）
+    /// </summary>
+    public byte[] FillRegions(byte[] imageData, IReadOnlyList<System.Windows.Rect> regions, Scalar color)
+    {
+        using var src = Cv2.ImDecode(imageData, ImreadModes.Color);
+        if (src.Empty()) throw new ArgumentException("Invalid image data");
+
+        foreach (var region in regions)
+        {
+            var rect = ToPixelRect(src, region);
+            if (rect.Width > 0 && rect.Height > 0)
+            {
+                Cv2.Rectangle(src, rect, color, -1);
+            }
+        }
+
+        Cv2.ImEncode(".png", src, out var buf);
+        Serilog.Log.Debug("FillRegions: filled {Count} regions, output PNG {Size} bytes", regions.Count, buf.Length);
+        return buf.ToArray();
+    }
+
     public byte[] InpaintRegion(byte[] imageData, System.Windows.Rect region)
     {
         using var src = Cv2.ImDecode(imageData, ImreadModes.Color);

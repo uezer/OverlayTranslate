@@ -121,7 +121,7 @@ public class TranslationPipeline
             }
         }
 
-        // 阶段 5：采样背景色并填充
+        // 阶段 5：采样背景色并填充（仅填充译文块区域，而非整个选区）
         var bgColor = _imageProcessor.SampleBackgroundColor(screenshotData, selection);
         var wpfBgColor = System.Windows.Media.Color.FromRgb(
             (byte)Math.Clamp(bgColor.Val2, 0, 255),
@@ -129,7 +129,15 @@ public class TranslationPipeline
             (byte)Math.Clamp(bgColor.Val0, 0, 255));
         var translatedStyle = ComputeStyle(blocks, selection, dpiScaleY, wpfBgColor);
 
-        var filledImageBytes = _imageProcessor.FillRegion(screenshotData, selection, bgColor);
+        // 将每个译文块的相对坐标转换为绝对坐标
+        var blockRects = translatedBlocks
+            .Select(tb => new System.Windows.Rect(
+                selection.X + tb.BoundingBox.X,
+                selection.Y + tb.BoundingBox.Y,
+                tb.BoundingBox.Width,
+                tb.BoundingBox.Height))
+            .ToList();
+        var filledImageBytes = _imageProcessor.FillRegions(screenshotData, blockRects, bgColor);
 
         return new PipelineResult
         {
@@ -194,8 +202,15 @@ public class TranslationPipeline
             (byte)Math.Clamp(bgColor.Val0, 0, 255));
         var translatedStyle = ComputeStyle(blocks, selection, dpiScaleY, wpfBgColor);
 
-        // 阶段 6：FillRegion
-        var filledImageBytes = _imageProcessor.FillRegion(screenshotData, selection, bgColor);
+        // 阶段 6：FillRegion（仅填充译文块区域，而非整个选区）
+        var blockRects = translatedBlocks
+            .Select(tb => new System.Windows.Rect(
+                selection.X + tb.BoundingBox.X,
+                selection.Y + tb.BoundingBox.Y,
+                tb.BoundingBox.Width,
+                tb.BoundingBox.Height))
+            .ToList();
+        var filledImageBytes = _imageProcessor.FillRegions(screenshotData, blockRects, bgColor);
 
         return new PipelineResult
         {
@@ -231,9 +246,16 @@ public class TranslationPipeline
 
         var translatedText = string.Join("\n", allTexts);
 
-        // 采样背景色并生成填充图
+        // 采样背景色并生成填充图（仅填充译文块区域，而非整个选区）
         var bgColor = _imageProcessor.SampleBackgroundColor(screenshotData, selection);
-        var filledImageBytes = _imageProcessor.FillRegion(screenshotData, selection, bgColor);
+        var blockRects = translatedBlocks
+            .Select(tb => new System.Windows.Rect(
+                selection.X + tb.BoundingBox.X,
+                selection.Y + tb.BoundingBox.Y,
+                tb.BoundingBox.Width,
+                tb.BoundingBox.Height))
+            .ToList();
+        var filledImageBytes = _imageProcessor.FillRegions(screenshotData, blockRects, bgColor);
 
         return new PipelineResult
         {
