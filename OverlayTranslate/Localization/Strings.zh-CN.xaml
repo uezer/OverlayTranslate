@@ -1,0 +1,87 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- App -->
+    <sys:String x:Key="App_Name">OverlayTranslate</sys:String>
+    <sys:String x:Key="App_StartupError">OverlayTranslate 错误</sys:String>
+    <sys:String x:Key="App_StartupException">启动异常:</sys:String>
+
+    <!-- 设置窗口 -->
+    <sys:String x:Key="Settings_Title">OverlayTranslate 设置</sys:String>
+    <sys:String x:Key="Settings_OcrTab">OCR</sys:String>
+    <sys:String x:Key="Settings_DefaultOcrEngine">默认 OCR 引擎:</sys:String>
+    <sys:String x:Key="Settings_ModelPath">模型路径:</sys:String>
+    <sys:String x:Key="Settings_RemoteOcr">远程 OCR</sys:String>
+    <sys:String x:Key="Settings_EndpointUrl">端点 URL:</sys:String>
+    <sys:String x:Key="Settings_FallbackEngine">回退引擎:</sys:String>
+    <sys:String x:Key="Settings_TranslationTab">翻译</sys:String>
+    <sys:String x:Key="Settings_DefaultTranslationEngine">默认翻译引擎:</sys:String>
+    <sys:String x:Key="Settings_FreeTier">免费版 (api-free.deepl.com)</sys:String>
+    <sys:String x:Key="Settings_BaiduTranslation">百度翻译</sys:String>
+    <sys:String x:Key="Settings_Secret">密钥:</sys:String>
+    <sys:String x:Key="Settings_Model">模型:</sys:String>
+    <sys:String x:Key="Settings_MicrosoftTranslation">Microsoft (Bing 翻译)</sys:String>
+    <sys:String x:Key="Settings_NoConfigNeeded">无需配置，直接使用</sys:String>
+    <sys:String x:Key="Settings_LanguageTab">语言</sys:String>
+    <sys:String x:Key="Settings_DefaultSourceLang">默认源语言:</sys:String>
+    <sys:String x:Key="Settings_DefaultTargetLang">默认目标语言:</sys:String>
+    <sys:String x:Key="Settings_HotkeyTab">热键</sys:String>
+    <sys:String x:Key="Settings_ScreenshotHotkey">截图翻译快捷键:</sys:String>
+    <sys:String x:Key="Settings_OtherTab">其他</sys:String>
+    <sys:String x:Key="Settings_LogLevel">日志级别:</sys:String>
+    <sys:String x:Key="Settings_LogFilePath">日志文件路径:</sys:String>
+    <sys:String x:Key="Settings_PythonRuntimePath">Python 运行时路径:</sys:String>
+    <sys:String x:Key="Settings_PythonHint">留空表示不使用 Python</sys:String>
+    <sys:String x:Key="Settings_Theme">主题:</sys:String>
+    <sys:String x:Key="Settings_FontSizeMode">字号模式:</sys:String>
+    <sys:String x:Key="Settings_CustomFontSize">自定义字号:</sys:String>
+    <sys:String x:Key="Settings_Save">保存</sys:String>
+    <sys:String x:Key="Settings_Cancel">取消</sys:String>
+    <sys:String x:Key="Settings_UiLanguage">界面语言:</sys:String>
+
+    <!-- 工具栏 -->
+    <sys:String x:Key="Toolbar_SourceLang">原语言:</sys:String>
+    <sys:String x:Key="Toolbar_TargetLang">目标语言:</sys:String>
+    <sys:String x:Key="Toolbar_OcrEngine">OCR引擎:</sys:String>
+    <sys:String x:Key="Toolbar_TransEngine">翻译引擎:</sys:String>
+    <sys:String x:Key="Toolbar_Reselect">重选</sys:String>
+    <sys:String x:Key="Toolbar_CopyOriginal">复制原文</sys:String>
+    <sys:String x:Key="Toolbar_CopyTranslated">复制译文</sys:String>
+    <sys:String x:Key="Toolbar_Exit">退出</sys:String>
+    <sys:String x:Key="Toolbar_ShowOriginalImage">显示原图</sys:String>
+    <sys:String x:Key="Toolbar_OriginalBgFill">原文底色覆盖</sys:String>
+    <sys:String x:Key="Toolbar_TranslatedBgFill">译文底色覆盖</sys:String>
+    <sys:String x:Key="Toolbar_OriginalText">原文</sys:String>
+    <sys:String x:Key="Toolbar_TranslatedText">译文</sys:String>
+
+    <!-- 托盘菜单 -->
+    <sys:String x:Key="Tray_ScreenshotTranslate">截图翻译</sys:String>
+    <sys:String x:Key="Tray_Settings">设置</sys:String>
+    <sys:String x:Key="Tray_Exit">退出</sys:String>
+
+    <!-- MessageBox -->
+    <sys:String x:Key="Msg_SettingsSaved_Title">提示</sys:String>
+    <sys:String x:Key="Msg_SettingsSaved_Body">设置已保存。
+
+以下设置立即生效：界面语言、语言、OCR/翻译引擎选择、API Key。
+以下设置需要重启应用：热键、日志级别、日志文件路径、Python 路径、OCR 模型路径。</sys:String>
+    <sys:String x:Key="Msg_ProcessFailed_Body">处理失败: {0}
+
+请检查引擎配置（右键托盘图标 → 设置）。</sys:String>
+
+    <!-- 通用 -->
+    <sys:String x:Key="None">(无)</sys:String>
+    <sys:String x:Key="Lang_Auto">跟随系统</sys:String>
+    <sys:String x:Key="Lang_zh-CN">中文</sys:String>
+    <sys:String x:Key="Lang_en-US">English</sys:String>
+
+    <!-- 引擎显示名 -->
+    <sys:String x:Key="Engine_PaddleOCR">PaddleOCR</sys:String>
+    <sys:String x:Key="Engine_RemoteOcr">远程 OCR</sys:String>
+    <sys:String x:Key="Engine_DeepL">DeepL</sys:String>
+    <sys:String x:Key="Engine_Google">Google 翻译</sys:String>
+    <sys:String x:Key="Engine_Baidu">百度</sys:String>
+    <sys:String x:Key="Engine_OpenAI">OpenAI</sys:String>
+    <sys:String x:Key="Engine_Microsoft">Microsoft (Bing 翻译)</sys:String>
+</ResourceDictionary>

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OverlayTranslate.Infrastructure;
+using OverlayTranslate.Localization;
 using Serilog;
 
 namespace OverlayTranslate.ViewModels;
@@ -17,7 +18,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _paddleModelPath = "inference/";
     [ObservableProperty] private string _remoteOcrEndpoint = "";
     [ObservableProperty] private string _remoteOcrApiKey = "";
-    [ObservableProperty] private string _selectedOcrFallback = "(无)";
+    [ObservableProperty] private string _selectedOcrFallback = "";
 
     // 翻译
     [ObservableProperty] private string _selectedTranslationEngine = "Google";
@@ -52,6 +53,15 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private string _selectedFontMode = "auto";
     [ObservableProperty] private int _customFontSize = 14;
 
+    // 界面语言
+    [ObservableProperty] private string _selectedLocale = "";
+
+    public string[] LocaleOptions { get; } = LocManager.SupportedLocales
+        .Select(l => string.IsNullOrEmpty(l) ? LocManager.Get("Lang_Auto") : LocManager.Get($"Lang_{l}"))
+        .ToArray();
+
+    public string[] LocaleValues { get; } = LocManager.SupportedLocales;
+
     public SettingsViewModel(
         ConfigManager configManager,
         Dictionary<string, Engines.IOcrEngine> ocrEngines,
@@ -60,7 +70,7 @@ public partial class SettingsViewModel : ObservableObject
         _configManager = configManager;
         _ocrEngineNames = ocrEngines.Keys.ToArray();
         _translationEngineNames = translationEngines.Keys.ToArray();
-        _fallbackOptions = new[] { "(无)" }.Concat(_ocrEngineNames).ToArray();
+        _fallbackOptions = new[] { LocManager.Get("None") }.Concat(_ocrEngineNames).ToArray();
 
         LoadFromSettings();
     }
@@ -74,7 +84,7 @@ public partial class SettingsViewModel : ObservableObject
         PaddleModelPath = s.Ocr.Engines.GetValueOrDefault("PaddleOCR")?.GetValueOrDefault("modelPath") ?? "inference/";
         RemoteOcrEndpoint = s.Ocr.Engines.GetValueOrDefault("RemoteOCR")?.GetValueOrDefault("endpoint") ?? "";
         RemoteOcrApiKey = s.Ocr.Engines.GetValueOrDefault("RemoteOCR")?.GetValueOrDefault("apiKey") ?? "";
-        SelectedOcrFallback = string.IsNullOrEmpty(s.Ocr.FallbackEngine) ? "(无)" : s.Ocr.FallbackEngine;
+        SelectedOcrFallback = string.IsNullOrEmpty(s.Ocr.FallbackEngine) ? LocManager.Get("None") : s.Ocr.FallbackEngine;
 
         // 翻译
         SelectedTranslationEngine = s.Translation.ActiveEngine;
@@ -102,6 +112,9 @@ public partial class SettingsViewModel : ObservableObject
         SelectedTheme = s.Other.Theme;
         SelectedFontMode = s.Other.FontSizeMode;
         CustomFontSize = s.Other.CustomFontSize;
+
+        var localeIndex = Array.IndexOf(LocaleValues, s.Other.Locale);
+        SelectedLocale = localeIndex >= 0 ? LocaleOptions[localeIndex] : LocaleOptions[0];
     }
 
     [RelayCommand]
@@ -117,7 +130,7 @@ public partial class SettingsViewModel : ObservableObject
             ["endpoint"] = RemoteOcrEndpoint,
             ["apiKey"] = RemoteOcrApiKey
         };
-        s.Ocr.FallbackEngine = SelectedOcrFallback == "(无)" ? null : SelectedOcrFallback;
+        s.Ocr.FallbackEngine = SelectedOcrFallback == LocManager.Get("None") ? null : SelectedOcrFallback;
 
         // 翻译
         s.Translation.ActiveEngine = SelectedTranslationEngine;
@@ -156,6 +169,11 @@ public partial class SettingsViewModel : ObservableObject
         s.Other.Theme = SelectedTheme;
         s.Other.FontSizeMode = SelectedFontMode;
         s.Other.CustomFontSize = CustomFontSize;
+
+        var localeIndex = Array.IndexOf(LocaleOptions, SelectedLocale);
+        s.Other.Locale = localeIndex >= 0 ? LocaleValues[localeIndex] : "";
+
+        LocManager.SetLocale(s.Other.Locale);
 
         Infrastructure.ThemeManager.SetTheme(SelectedTheme);
 

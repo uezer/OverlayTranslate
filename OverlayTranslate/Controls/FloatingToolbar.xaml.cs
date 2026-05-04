@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using OverlayTranslate.Localization;
 using OverlayTranslate.Models;
 using OverlayTranslate.ViewModels;
 
@@ -9,6 +10,9 @@ namespace OverlayTranslate.Controls;
 public partial class FloatingToolbar : UserControl
 {
     private readonly FloatingToolbarViewModel _vm;
+    private string[] _ocrEngineKeys = [];
+    private string[] _transEngineKeys = [];
+    private EngineDisplayMap _displayMap = null!;
     private bool _initialized;
     private bool _isDragging;
     private Point _dragStart;
@@ -39,26 +43,38 @@ public partial class FloatingToolbar : UserControl
         OcrEngineComboBox.SelectionChanged += (_, _) =>
         {
             if (_initialized && !_eventsSuspended)
-                _vm.NotifyEngineChanged("ocr", OcrEngineComboBox.SelectedItem?.ToString() ?? "");
+            {
+                var displayName = OcrEngineComboBox.SelectedItem?.ToString() ?? "";
+                var key = _displayMap?.GetEngineKey(displayName) ?? displayName;
+                _vm.NotifyEngineChanged("ocr", key);
+            }
         };
         TranslationEngineComboBox.SelectionChanged += (_, _) =>
         {
             if (_initialized && !_eventsSuspended)
-                _vm.NotifyEngineChanged("translation", TranslationEngineComboBox.SelectedItem?.ToString() ?? "");
+            {
+                var displayName = TranslationEngineComboBox.SelectedItem?.ToString() ?? "";
+                var key = _displayMap?.GetEngineKey(displayName) ?? displayName;
+                _vm.NotifyEngineChanged("translation", key);
+            }
         };
     }
 
-    public void SetEngines(string[] ocrEngines, string[] translationEngines)
+    public void SetEngines(string[] ocrEngines, string[] translationEngines, EngineDisplayMap displayMap)
     {
+        _ocrEngineKeys = ocrEngines;
+        _transEngineKeys = translationEngines;
+        _displayMap = displayMap;
+
         OcrEngineComboBox.Items.Clear();
-        foreach (var engine in ocrEngines)
-            OcrEngineComboBox.Items.Add(engine);
+        foreach (var name in displayMap.GetLocalizedNames(ocrEngines))
+            OcrEngineComboBox.Items.Add(name);
         if (OcrEngineComboBox.Items.Count > 0)
             OcrEngineComboBox.SelectedIndex = 0;
 
         TranslationEngineComboBox.Items.Clear();
-        foreach (var engine in translationEngines)
-            TranslationEngineComboBox.Items.Add(engine);
+        foreach (var name in displayMap.GetLocalizedNames(translationEngines))
+            TranslationEngineComboBox.Items.Add(name);
         if (TranslationEngineComboBox.Items.Count > 0)
             TranslationEngineComboBox.SelectedIndex = 0;
     }
@@ -87,23 +103,31 @@ public partial class FloatingToolbar : UserControl
         if (idx >= 0) TargetLanguageComboBox.SelectedIndex = idx;
     }
 
-    public void SetSelectedOcrEngine(string name)
+    public void SetSelectedOcrEngine(string key)
     {
-        var idx = OcrEngineComboBox.Items.IndexOf(name);
+        var displayName = _displayMap?.GetDisplayName(key) ?? key;
+        var idx = OcrEngineComboBox.Items.IndexOf(displayName);
         if (idx >= 0) OcrEngineComboBox.SelectedIndex = idx;
     }
 
-    public void SetSelectedTranslationEngine(string name)
+    public void SetSelectedTranslationEngine(string key)
     {
-        var idx = TranslationEngineComboBox.Items.IndexOf(name);
+        var displayName = _displayMap?.GetDisplayName(key) ?? key;
+        var idx = TranslationEngineComboBox.Items.IndexOf(displayName);
         if (idx >= 0) TranslationEngineComboBox.SelectedIndex = idx;
     }
 
-    public string GetSelectedOcrEngine() =>
-        OcrEngineComboBox.SelectedItem?.ToString() ?? "";
+    public string GetSelectedOcrEngine()
+    {
+        var displayName = OcrEngineComboBox.SelectedItem?.ToString() ?? "";
+        return _displayMap?.GetEngineKey(displayName) ?? displayName;
+    }
 
-    public string GetSelectedTranslationEngine() =>
-        TranslationEngineComboBox.SelectedItem?.ToString() ?? "";
+    public string GetSelectedTranslationEngine()
+    {
+        var displayName = TranslationEngineComboBox.SelectedItem?.ToString() ?? "";
+        return _displayMap?.GetEngineKey(displayName) ?? displayName;
+    }
 
     private void LoadDefaultLanguages()
     {

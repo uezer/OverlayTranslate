@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OverlayTranslate.Localization;
 using OverlayTranslate.Models;
 
 namespace OverlayTranslate.ViewModels;
@@ -13,12 +14,17 @@ public partial class FloatingToolbarViewModel : ObservableObject
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _expandPanelVisible;
-    [ObservableProperty] private string _viewModeText = "原文";
+    [ObservableProperty] private string _viewModeText = LocManager.Get("Toolbar_OriginalText");
     [ObservableProperty] private string _expandButtonText = "▼";
 
     private OverlayViewMode _currentViewMode = OverlayViewMode.OriginalText;
     private bool _originalBgFill = true;
     private bool _translatedBgFill = true;
+
+    public FloatingToolbarViewModel()
+    {
+        LocManager.Changed += RefreshLocalizedStrings;
+    }
 
     // 事件回调（由 OverlayWindow 注册）
     public event Action? OnReselect;
@@ -47,9 +53,9 @@ public partial class FloatingToolbarViewModel : ObservableObject
         };
         ViewModeText = _currentViewMode switch
         {
-            OverlayViewMode.OriginalText => "原文",
-            OverlayViewMode.TranslatedText => "译文",
-            _ => "原文"
+            OverlayViewMode.OriginalText => LocManager.Get("Toolbar_OriginalText"),
+            OverlayViewMode.TranslatedText => LocManager.Get("Toolbar_TranslatedText"),
+            _ => LocManager.Get("Toolbar_OriginalText")
         };
         OnViewModeChanged?.Invoke(_currentViewMode);
     }
@@ -65,7 +71,7 @@ public partial class FloatingToolbarViewModel : ObservableObject
     private void ShowOriginalImage()
     {
         _currentViewMode = OverlayViewMode.OriginalImage;
-        ViewModeText = "原文"; // 按钮保持显示"原文"，原图是临时查看
+        ViewModeText = LocManager.Get("Toolbar_OriginalText"); // 按钮保持显示"原文"，原图是临时查看
         OnViewModeChanged?.Invoke(OverlayViewMode.OriginalImage);
     }
 
@@ -87,9 +93,9 @@ public partial class FloatingToolbarViewModel : ObservableObject
         _currentViewMode = mode;
         ViewModeText = mode switch
         {
-            OverlayViewMode.OriginalText => "原文",
-            OverlayViewMode.TranslatedText => "译文",
-            _ => "原文"
+            OverlayViewMode.OriginalText => LocManager.Get("Toolbar_OriginalText"),
+            OverlayViewMode.TranslatedText => LocManager.Get("Toolbar_TranslatedText"),
+            _ => LocManager.Get("Toolbar_OriginalText")
         };
     }
 
@@ -111,6 +117,16 @@ public partial class FloatingToolbarViewModel : ObservableObject
     public void NotifyDragStarted() => OnDragStarted?.Invoke();
     public void NotifyLanguageChanged(string which, string value) => OnLanguageChanged?.Invoke(which, value);
     public void NotifyEngineChanged(string which, string value) => OnEngineChanged?.Invoke(which, value);
+
+    private void RefreshLocalizedStrings()
+    {
+        ViewModeText = _currentViewMode switch
+        {
+            OverlayViewMode.OriginalText => LocManager.Get("Toolbar_OriginalText"),
+            OverlayViewMode.TranslatedText => LocManager.Get("Toolbar_TranslatedText"),
+            _ => LocManager.Get("Toolbar_OriginalText")
+        };
+    }
 
     private static void TrySetClipboard(string text)
     {

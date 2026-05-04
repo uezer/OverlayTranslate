@@ -8,6 +8,7 @@ using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Models;
 using OverlayTranslate.Services;
 using OverlayTranslate.ViewModels;
+using OverlayTranslate.Localization;
 using Serilog;
 
 namespace OverlayTranslate.Windows;
@@ -17,6 +18,7 @@ public partial class OverlayWindow : Window
     private readonly OverlayWindowViewModel _vm;
     private readonly ScreenshotService _screenshotService;
     private readonly TranslationPipeline _pipeline;
+    private readonly EngineDisplayMap _displayMap;
 
     private Point _selectionStart;
     private bool _autoPositionToolbar = true;
@@ -24,11 +26,13 @@ public partial class OverlayWindow : Window
     public OverlayWindow(
         OverlayWindowViewModel viewModel,
         ScreenshotService screenshotService,
-        TranslationPipeline pipeline)
+        TranslationPipeline pipeline,
+        EngineDisplayMap displayMap)
     {
         _vm = viewModel;
         _screenshotService = screenshotService;
         _pipeline = pipeline;
+        _displayMap = displayMap;
 
         InitializeComponent();
 
@@ -71,7 +75,7 @@ public partial class OverlayWindow : Window
         var transNames = _pipeline.GetAvailableTranslationEngines();
 
         Toolbar.SuspendEvents();
-        Toolbar.SetEngines(ocrNames, transNames);
+        Toolbar.SetEngines(ocrNames, transNames, _displayMap);
         Toolbar.SetSelectedOcrEngine(_vm.CurrentOcrEngineName);
         Toolbar.SetSelectedTranslationEngine(_vm.CurrentTranslationEngineName);
         Toolbar.SetSourceLanguage(_vm.SourceLanguage);
@@ -267,8 +271,8 @@ public partial class OverlayWindow : Window
             _vm.State = OverlayState.Selecting;
 
             Hide();
-            MessageBox.Show($"处理失败: {ex.Message}\n\n请检查引擎配置（右键托盘图标 → 设置）。",
-                "OverlayTranslate", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(string.Format(LocManager.Get("Msg_ProcessFailed_Body"), ex.Message),
+                LocManager.Get("App_Name"), MessageBoxButton.OK, MessageBoxImage.Warning);
             Show();
             Activate();
         }

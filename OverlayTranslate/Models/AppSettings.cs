@@ -55,4 +55,5 @@ public class OtherSettings
     public string FontSizeMode { get; set; } = "auto"; // auto / fit-width / custom
     public int CustomFontSize { get; set; } = 14;
     public string Theme { get; set; } = "system"; // light / dark / system
+    public string Locale { get; set; } = "";  // "" = 跟随系统, "zh-CN", "en-US"
 }
