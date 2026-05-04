@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using OverlayTranslate.Engines;
@@ -62,6 +63,9 @@ public class TranslationPipeline
             return e;
         return _defaultTranslationEngine;
     }
+
+    public string[] GetAvailableOcrEngines() => _ocrEngines.Keys.ToArray();
+    public string[] GetAvailableTranslationEngines() => _translationEngines.Keys.ToArray();
 
     public async Task<PipelineResult?> ExecuteAsync(
         byte[] screenshotData, Rect selection,
@@ -132,6 +136,72 @@ public class TranslationPipeline
             OriginalText = originalText,
             TranslatedText = translatedText,
             OcrBlocks = ocrResult.TextBlocks,
+            TranslatedBlocks = translatedBlocks,
+            FilledImageBytes = filledImageBytes,
+            OriginalStyle = originalStyle,
+            TranslatedStyle = translatedStyle
+        };
+    }
+
+    public async Task<PipelineResult> TranslateBlocksAsync(
+        byte[] screenshotData, Rect selection,
+        IReadOnlyList<TextBlock> ocrBlocks, string originalText,
+        double screenshotDpiX, double screenshotDpiY,
+        string translationEngineName, string sourceLang, string targetLang,
+        CancellationToken ct)
+    {
+        // 阶段 1：计算 DPI 比例
+        var dpiScaleY = screenshotDpiY / 96.0;
+
+        // 阶段 2：计算原文样式（placeholderBg = 黑色）
+        var placeholderBg = System.Windows.Media.Color.FromRgb(0, 0, 0);
+        var originalStyle = ComputeStyle(ocrBlocks, selection, dpiScaleY, placeholderBg);
+
+        // 阶段 3：翻译
+        var translationEngine = GetTranslationEngine(translationEngineName);
+        var translationResult = await translationEngine.TranslateAsync(originalText, sourceLang, targetLang, ct);
+        ct.ThrowIfCancellationRequested();
+
+        var translatedText = translationResult.TranslatedText;
+        Log.Information("翻译: {Text}", translatedText.Length > 50 ? translatedText[..50] + "..." : translatedText);
+
+        // 阶段 4：行匹配或逐块翻译
+        var translatedLines = translatedText.Split('\n');
+        var blocks = ocrBlocks;
+        var translatedBlocks = new List<(string Text, Rect BoundingBox)>();
+
+        if (translatedLines.Length == blocks.Count)
+        {
+            for (int i = 0; i < blocks.Count; i++)
+                translatedBlocks.Add((translatedLines[i], blocks[i].BoundingBox));
+        }
+        else
+        {
+            foreach (var block in blocks)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(block.Text)) continue;
+                var r = await translationEngine.TranslateAsync(block.Text, sourceLang, targetLang, ct);
+                translatedBlocks.Add((r.TranslatedText, block.BoundingBox));
+            }
+        }
+
+        // 阶段 5：采样背景色，计算译文样式
+        var bgColor = _imageProcessor.SampleBackgroundColor(screenshotData, selection);
+        var wpfBgColor = System.Windows.Media.Color.FromRgb(
+            (byte)Math.Clamp(bgColor.Val2, 0, 255),
+            (byte)Math.Clamp(bgColor.Val1, 0, 255),
+            (byte)Math.Clamp(bgColor.Val0, 0, 255));
+        var translatedStyle = ComputeStyle(blocks, selection, dpiScaleY, wpfBgColor);
+
+        // 阶段 6：FillRegion
+        var filledImageBytes = _imageProcessor.FillRegion(screenshotData, selection, bgColor);
+
+        return new PipelineResult
+        {
+            OriginalText = originalText,
+            TranslatedText = translatedText,
+            OcrBlocks = ocrBlocks,
             TranslatedBlocks = translatedBlocks,
             FilledImageBytes = filledImageBytes,
             OriginalStyle = originalStyle,

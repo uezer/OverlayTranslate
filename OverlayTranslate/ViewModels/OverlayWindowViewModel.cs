@@ -187,9 +187,6 @@ public partial class OverlayWindowViewModel : ObservableObject
 
     // ===== 引擎管理 =====
 
-    public IOcrEngine GetCurrentOcrEngine() => _pipeline.GetOcrEngine(CurrentOcrEngineName);
-    public ITranslationEngine GetCurrentTranslationEngine() => _pipeline.GetTranslationEngine(CurrentTranslationEngineName);
-
     public void SwitchOcrEngine(string engineName)
     {
         if (!_ocrEngines.ContainsKey(engineName)) return;
