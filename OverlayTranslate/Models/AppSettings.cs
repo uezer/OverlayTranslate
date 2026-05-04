@@ -9,6 +9,7 @@ public class AppSettings
     public PythonSettings Python { get; set; } = new();
     public LoggingSettings Logging { get; set; } = new();
     public OtherSettings Other { get; set; } = new();
+    public UpdateSettings Update { get; set; } = new();
 }
 
 public class OcrSettings
@@ -56,4 +57,10 @@ public class OtherSettings
     public int CustomFontSize { get; set; } = 14;
     public string Theme { get; set; } = "system"; // light / dark / system
     public string Locale { get; set; } = "";  // "" = 跟随系统, "zh-CN", "en-US"
+}
+
+public class UpdateSettings
+{
+    public bool AutoCheck { get; set; } = true;
+    public string? SkippedVersion { get; set; }
 }

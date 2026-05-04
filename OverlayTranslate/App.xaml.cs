@@ -289,20 +289,37 @@ public partial class App : Application
     {
         try
         {
+            var configManager = Services.GetRequiredService<ConfigManager>();
+
+            // 检查是否启用自动更新
+            if (!configManager.Settings.Update.AutoCheck)
+                return;
+
             var httpClient = Services.GetRequiredService<HttpClient>();
             var updateService = new UpdateService(httpClient);
 
             var release = await updateService.CheckForUpdateAsync(CancellationToken.None);
-            if (release != null)
+            if (release == null)
+                return;
+
+            // 检查是否跳过此版本
+            var skippedVersion = configManager.Settings.Update.SkippedVersion;
+            if (!string.IsNullOrEmpty(skippedVersion) &&
+                release.TagName.TrimStart('v') == skippedVersion)
+                return;
+
+            await Dispatcher.InvokeAsync(() =>
             {
-                // 确保在 UI 线程显示对话框
-                await Dispatcher.InvokeAsync(() =>
+                var dialog = new UpdateDialog(updateService, release);
+                dialog.Owner = MainWindow;
+
+                if (dialog.ShowDialog() == false)
                 {
-                    var dialog = new UpdateDialog(updateService, release);
-                    dialog.Owner = MainWindow;
-                    dialog.ShowDialog();
-                });
-            }
+                    // 用户选择跳过，记录版本号
+                    configManager.Settings.Update.SkippedVersion = release.TagName.TrimStart('v');
+                    configManager.Save();
+                }
+            });
         }
         catch (Exception ex)
         {
