@@ -25,6 +25,7 @@ The translated text overlays the original content in place — you keep reading 
 - **3 View Modes** — Original Image / Original Text / Translated Text
 - **Auto Text Color** — white on dark backgrounds, black on light backgrounds
 - **Light / Dark / System Theme** — full theme support
+- **Auto Update** — checks GitHub Releases on startup, one-click download and install
 
 ## Install
 
