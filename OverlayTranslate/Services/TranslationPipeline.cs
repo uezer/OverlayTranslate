@@ -110,6 +110,7 @@ public class TranslationPipeline
             // 行数不匹配，逐块翻译
             foreach (var block in blocks)
             {
+                ct.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(block.Text)) continue;
                 var r = await translationEngine.TranslateAsync(block.Text, sourceLang, targetLang, ct);
                 translatedBlocks.Add((r.TranslatedText, block.BoundingBox));
