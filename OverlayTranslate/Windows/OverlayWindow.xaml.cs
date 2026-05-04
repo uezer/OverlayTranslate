@@ -38,20 +38,21 @@ public partial class OverlayWindow : Window
             Mask.Height = args.NewSize.Height;
         };
 
-        // 工具栏事件绑定
-        Toolbar.OnReselect += HandleReselect;
-        Toolbar.OnExit += ExitOverlay;
-        Toolbar.OnDragStarted += () => _autoPositionToolbar = false;
-        Toolbar.OnViewModeChanged += mode => ApplyViewMode(mode);
-        Toolbar.OnOriginalBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
-        Toolbar.OnTranslatedBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
-        Toolbar.OnLanguageChanged += (which, value) =>
+        // 工具栏事件绑定（通过 ViewModel）
+        var toolbarVm = Toolbar.ViewModel;
+        toolbarVm.OnReselect += HandleReselect;
+        toolbarVm.OnExit += ExitOverlay;
+        toolbarVm.OnDragStarted += () => _autoPositionToolbar = false;
+        toolbarVm.OnViewModeChanged += mode => ApplyViewMode(mode);
+        toolbarVm.OnOriginalBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
+        toolbarVm.OnTranslatedBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
+        toolbarVm.OnLanguageChanged += (which, value) =>
         {
             if (which == "source") _vm.SourceLanguage = value;
             else _vm.TargetLanguage = value;
             if (_vm.State == OverlayState.Result) RerunTranslation();
         };
-        Toolbar.OnEngineChanged += (which, value) =>
+        toolbarVm.OnEngineChanged += (which, value) =>
         {
             if (which == "ocr")
             {
@@ -192,7 +193,7 @@ public partial class OverlayWindow : Window
         if (_vm.State == OverlayState.Exiting || _vm.ScreenshotData == null) return;
 
         _vm.State = OverlayState.Processing;
-        Toolbar.SetLoading(true);
+        Toolbar.ViewModel.IsLoading = true;
 
         try
         {
@@ -226,14 +227,14 @@ public partial class OverlayWindow : Window
             PopulateTextOverlays(ocrResult.TextBlocks, selection, dpiScaleX, dpiScaleY);
 
             _vm.ViewMode = OverlayViewMode.OriginalText;
-            Toolbar.SetData(_vm.OriginalText, "");
-            Toolbar.SetViewMode(OverlayViewMode.OriginalText);
+            Toolbar.ViewModel.SetData(_vm.OriginalText, "");
+            Toolbar.ViewModel.SetViewMode(OverlayViewMode.OriginalText);
             Toolbar.Visibility = Visibility.Visible;
             PositionToolbar(selection);
             _vm.State = OverlayState.Result;
 
             // === 阶段 2：翻译 + 译文覆盖 ===
-            Toolbar.SetLoading(true);
+            Toolbar.ViewModel.IsLoading = true;
             var sourceLang = _vm.SourceLanguage;
             var targetLang = _vm.TargetLanguage;
 
@@ -250,18 +251,18 @@ public partial class OverlayWindow : Window
             _vm.TranslatedStyle = result.TranslatedStyle;
             Log.Information("翻译: {Text}", _vm.TranslatedText.Length > 50 ? _vm.TranslatedText[..50] + "..." : _vm.TranslatedText);
 
-            Toolbar.SetData(_vm.OriginalText, _vm.TranslatedText);
+            Toolbar.ViewModel.SetData(_vm.OriginalText, _vm.TranslatedText);
             ApplyViewMode(OverlayViewMode.TranslatedText);
-            Toolbar.SetViewMode(OverlayViewMode.TranslatedText);
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.SetViewMode(OverlayViewMode.TranslatedText);
+            Toolbar.ViewModel.IsLoading = false;
         }
         catch (OperationCanceledException)
         {
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.IsLoading = false;
         }
         catch (Exception ex)
         {
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.IsLoading = false;
             Log.Error(ex, "处理选区失败");
             _vm.State = OverlayState.Selecting;
 
@@ -292,7 +293,7 @@ public partial class OverlayWindow : Window
 
     private async Task ReTranslateAsync()
     {
-        Toolbar.SetLoading(true);
+        Toolbar.ViewModel.IsLoading = true;
         try
         {
             var sourceLang = _vm.SourceLanguage;
@@ -311,15 +312,15 @@ public partial class OverlayWindow : Window
                 _vm.FilledImageBytes = result.FilledImageBytes;
             _vm.TranslatedStyle = result.TranslatedStyle;
 
-            Toolbar.SetData(_vm.OriginalText, _vm.TranslatedText);
+            Toolbar.ViewModel.SetData(_vm.OriginalText, _vm.TranslatedText);
             if (_vm.ViewMode == OverlayViewMode.TranslatedText)
                 ApplyViewMode(OverlayViewMode.TranslatedText);
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.IsLoading = false;
         }
-        catch (OperationCanceledException) { Toolbar.SetLoading(false); }
+        catch (OperationCanceledException) { Toolbar.ViewModel.IsLoading = false; }
         catch (Exception ex)
         {
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.IsLoading = false;
             Log.Error(ex, "重新翻译失败");
         }
     }
@@ -349,7 +350,7 @@ public partial class OverlayWindow : Window
                 break;
 
             case OverlayViewMode.TranslatedText:
-                if (Toolbar.IsTranslatedBgFillEnabled && _vm.FilledImageBytes != null)
+                if (Toolbar.ViewModel.IsTranslatedBgFillEnabled && _vm.FilledImageBytes != null)
                     BackgroundImage.Source = BytesToBitmapImage(_vm.FilledImageBytes);
                 else if (_vm.ScreenshotData != null)
                     BackgroundImage.Source = BytesToBitmapImage(_vm.ScreenshotData);
@@ -387,7 +388,7 @@ public partial class OverlayWindow : Window
         var dpiScaleX = _vm.ScreenshotDpiX / 96.0;
         var dpiScaleY = _vm.ScreenshotDpiY / 96.0;
         var style = _vm.TranslatedStyle;
-        var bgFill = Toolbar.IsTranslatedBgFillEnabled;
+        var bgFill = Toolbar.ViewModel.IsTranslatedBgFillEnabled;
 
         foreach (var (text, bbox) in _vm.TranslatedBlocks)
         {

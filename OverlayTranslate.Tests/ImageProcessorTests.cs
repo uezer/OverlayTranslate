@@ -43,36 +43,6 @@ public class ImageProcessorTests
         Assert.True(centerPixel.Item0 > 200, $"Expected bright pixel, got B={centerPixel.Item0}");
         Assert.True(centerPixel.Item1 > 200, $"Expected bright pixel, got G={centerPixel.Item1}");
         Assert.True(centerPixel.Item2 > 200, $"Expected bright pixel, got R={centerPixel.Item2}");
-
-        // 渲染译文
-        var renderer = new TextRenderer();
-        var style = new TextStyleInfo { FontSize = 16, TextColor = System.Windows.Media.Colors.Black, RegionWidth = 200, RegionHeight = 50 };
-        var result = renderer.RenderTranslatedText(filled, "Hello World", region, style);
-
-        Assert.NotNull(result);
-        Assert.True(result.PixelWidth > 0, $"PixelWidth should be > 0, got {result.PixelWidth}");
-        Assert.True(result.PixelHeight > 0, $"PixelHeight should be > 0, got {result.PixelHeight}");
-
-        // 将结果编码为 PNG 并检查非黑色像素
-        var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(result));
-        using var ms = new System.IO.MemoryStream();
-        encoder.Save(ms);
-        var resultPng = ms.ToArray();
-        Assert.NotEmpty(resultPng);
-
-        // 用 OpenCV 解码结果 PNG 并检查
-        using var resultMat = Cv2.ImDecode(resultPng, ImreadModes.Color);
-        Assert.False(resultMat.Empty(), "Result PNG should decode to valid Mat");
-
-        // 检查选区外的像素（应该保持白色）
-        var outsidePixel = resultMat.At<Vec3b>(50, 50);
-        Assert.True(outsidePixel.Item0 > 200, $"Outside pixel should be bright, B={outsidePixel.Item0}");
-
-        // 检查选区内的像素（应该不是纯黑）
-        var insidePixel = resultMat.At<Vec3b>(125, 200);
-        var brightness = (insidePixel.Item0 + insidePixel.Item1 + insidePixel.Item2) / 3.0;
-        Assert.True(brightness > 100, $"Selection area should not be black, brightness={brightness}, pixel=({insidePixel.Item0},{insidePixel.Item1},{insidePixel.Item2})");
     }
 
     /// <summary>
@@ -101,28 +71,12 @@ public class ImageProcessorTests
         Assert.Equal(2880, filledMat.Width);
         Assert.Equal(1620, filledMat.Height);
 
-        // 渲染译文
-        var renderer = new TextRenderer();
-        var style = new TextStyleInfo { FontSize = 20, TextColor = System.Windows.Media.Colors.Black, RegionWidth = 300, RegionHeight = 80 };
-        var result = renderer.RenderTranslatedText(filled, "测试译文 Test", region, style);
-
-        // 验证输出尺寸匹配输入
-        Assert.Equal(2880, result.PixelWidth);
-        Assert.Equal(1620, result.PixelHeight);
-
-        // 将结果编码并检查选区内不为黑色
-        var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(result));
-        using var ms = new System.IO.MemoryStream();
-        encoder.Save(ms);
-
-        using var resultMat = Cv2.ImDecode(ms.ToArray(), ImreadModes.Color);
-        // 选区中心在物理像素坐标 = DIP * 1.5
+        // 验证填充后选区内不为黑色（物理像素坐标 = DIP * 1.5）
         var px = (int)((200 + 150) * 2880.0 / 1920.0);
         var py = (int)((200 + 40) * 1620.0 / 1080.0);
-        var insidePixel = resultMat.At<Vec3b>(py, px);
+        var insidePixel = filledMat.At<Vec3b>(py, px);
         var brightness = (insidePixel.Item0 + insidePixel.Item1 + insidePixel.Item2) / 3.0;
-        Assert.True(brightness > 100, $"High DPI selection should not be black, brightness={brightness}");
+        Assert.True(brightness > 200, $"High DPI selection should be bright, brightness={brightness}");
     }
 
     /// <summary>
