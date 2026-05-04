@@ -1,0 +1,48 @@
+<svg width="512" height="512" viewBox="320 200 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradRefine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00CFFF"/>
+      <stop offset="100%" stop-color="#FF4FD8"/>
+    </linearGradient>
+
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 主体路径（保留你结构但视觉顺滑化） -->
+  <path d="
+    M375 247
+    C378 247 382 250 386 253
+    C390 257 392 262 392 268
+    C392 275 388 280 382 283
+    C376 286 370 286 365 283
+    C360 280 357 275 358 270
+    C359 265 363 262 368 261
+    C373 260 378 260 384 261
+    C390 262 396 264 400 267
+    C404 270 406 270 408 269
+  "
+  fill="none"
+  stroke="url(#gradRefine)"
+  stroke-width="3.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  filter="url(#softGlow)"/>
+
+  <!-- 小笔触（保留你第二段但优化） -->
+  <path d="
+    M377 225
+    C379 226 382 228 384 230
+  "
+  fill="none"
+  stroke="url(#gradRefine)"
+  stroke-width="3"
+  stroke-linecap="round"
+  opacity="0.85"/>
+
+</svg>

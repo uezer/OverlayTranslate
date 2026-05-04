@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using H.NotifyIcon;
 
 namespace OverlayTranslate.Infrastructure;
@@ -20,7 +21,8 @@ public class TrayIconManager : IDisposable
 
     public void Initialize()
     {
-        _trayIcon.Icon = SystemIcons.Application;
+        var uri = new Uri("pack://application:,,,/Assets/app.ico");
+        _trayIcon.IconSource = BitmapFrame.Create(uri);
         _trayIcon.ContextMenu = CreateContextMenu();
         _trayIcon.TrayLeftMouseUp += (_, _) => _onScreenshotRequested();
     }
