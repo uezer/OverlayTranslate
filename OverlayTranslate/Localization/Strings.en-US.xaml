@@ -1,0 +1,87 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- App -->
+    <sys:String x:Key="App_Name">OverlayTranslate</sys:String>
+    <sys:String x:Key="App_StartupError">OverlayTranslate Error</sys:String>
+    <sys:String x:Key="App_StartupException">Startup error:</sys:String>
+
+    <!-- Settings -->
+    <sys:String x:Key="Settings_Title">OverlayTranslate Settings</sys:String>
+    <sys:String x:Key="Settings_OcrTab">OCR</sys:String>
+    <sys:String x:Key="Settings_DefaultOcrEngine">Default OCR Engine:</sys:String>
+    <sys:String x:Key="Settings_ModelPath">Model Path:</sys:String>
+    <sys:String x:Key="Settings_RemoteOcr">Remote OCR</sys:String>
+    <sys:String x:Key="Settings_EndpointUrl">Endpoint URL:</sys:String>
+    <sys:String x:Key="Settings_FallbackEngine">Fallback Engine:</sys:String>
+    <sys:String x:Key="Settings_TranslationTab">Translation</sys:String>
+    <sys:String x:Key="Settings_DefaultTranslationEngine">Default Translation Engine:</sys:String>
+    <sys:String x:Key="Settings_FreeTier">Free tier (api-free.deepl.com)</sys:String>
+    <sys:String x:Key="Settings_BaiduTranslation">Baidu Translate</sys:String>
+    <sys:String x:Key="Settings_Secret">Secret:</sys:String>
+    <sys:String x:Key="Settings_Model">Model:</sys:String>
+    <sys:String x:Key="Settings_MicrosoftTranslation">Microsoft (Bing Translator)</sys:String>
+    <sys:String x:Key="Settings_NoConfigNeeded">No configuration needed</sys:String>
+    <sys:String x:Key="Settings_LanguageTab">Language</sys:String>
+    <sys:String x:Key="Settings_DefaultSourceLang">Default Source Language:</sys:String>
+    <sys:String x:Key="Settings_DefaultTargetLang">Default Target Language:</sys:String>
+    <sys:String x:Key="Settings_HotkeyTab">Hotkey</sys:String>
+    <sys:String x:Key="Settings_ScreenshotHotkey">Screenshot Hotkey:</sys:String>
+    <sys:String x:Key="Settings_OtherTab">Other</sys:String>
+    <sys:String x:Key="Settings_LogLevel">Log Level:</sys:String>
+    <sys:String x:Key="Settings_LogFilePath">Log File Path:</sys:String>
+    <sys:String x:Key="Settings_PythonRuntimePath">Python Runtime Path:</sys:String>
+    <sys:String x:Key="Settings_PythonHint">Leave empty to disable Python</sys:String>
+    <sys:String x:Key="Settings_Theme">Theme:</sys:String>
+    <sys:String x:Key="Settings_FontSizeMode">Font Size Mode:</sys:String>
+    <sys:String x:Key="Settings_CustomFontSize">Custom Font Size:</sys:String>
+    <sys:String x:Key="Settings_Save">Save</sys:String>
+    <sys:String x:Key="Settings_Cancel">Cancel</sys:String>
+    <sys:String x:Key="Settings_UiLanguage">UI Language:</sys:String>
+
+    <!-- Toolbar -->
+    <sys:String x:Key="Toolbar_SourceLang">Source:</sys:String>
+    <sys:String x:Key="Toolbar_TargetLang">Target:</sys:String>
+    <sys:String x:Key="Toolbar_OcrEngine">OCR Engine:</sys:String>
+    <sys:String x:Key="Toolbar_TransEngine">Translation:</sys:String>
+    <sys:String x:Key="Toolbar_Reselect">Reselect</sys:String>
+    <sys:String x:Key="Toolbar_CopyOriginal">Copy Original</sys:String>
+    <sys:String x:Key="Toolbar_CopyTranslated">Copy Translated</sys:String>
+    <sys:String x:Key="Toolbar_Exit">Exit</sys:String>
+    <sys:String x:Key="Toolbar_ShowOriginalImage">Show Original</sys:String>
+    <sys:String x:Key="Toolbar_OriginalBgFill">Original BG Fill</sys:String>
+    <sys:String x:Key="Toolbar_TranslatedBgFill">Translated BG Fill</sys:String>
+    <sys:String x:Key="Toolbar_OriginalText">Original</sys:String>
+    <sys:String x:Key="Toolbar_TranslatedText">Translated</sys:String>
+
+    <!-- Tray Menu -->
+    <sys:String x:Key="Tray_ScreenshotTranslate">Screenshot Translate</sys:String>
+    <sys:String x:Key="Tray_Settings">Settings</sys:String>
+    <sys:String x:Key="Tray_Exit">Exit</sys:String>
+
+    <!-- MessageBox -->
+    <sys:String x:Key="Msg_SettingsSaved_Title">Notice</sys:String>
+    <sys:String x:Key="Msg_SettingsSaved_Body">Settings saved.
+
+These take effect immediately: UI Language, Source/Target Language, OCR/Translation Engine selection, API Key.
+These require an app restart: Hotkey, Log Level, Log File Path, Python Path, OCR Model Path.</sys:String>
+    <sys:String x:Key="Msg_ProcessFailed_Body">Processing failed: {0}
+
+Please check engine configuration (right-click tray icon → Settings).</sys:String>
+
+    <!-- Common -->
+    <sys:String x:Key="None">(None)</sys:String>
+    <sys:String x:Key="Lang_Auto">System Default</sys:String>
+    <sys:String x:Key="Lang_zh-CN">Chinese</sys:String>
+    <sys:String x:Key="Lang_en-US">English</sys:String>
+
+    <!-- Engine Display Names -->
+    <sys:String x:Key="Engine_PaddleOCR">PaddleOCR</sys:String>
+    <sys:String x:Key="Engine_RemoteOcr">Remote OCR</sys:String>
+    <sys:String x:Key="Engine_DeepL">DeepL</sys:String>
+    <sys:String x:Key="Engine_Google">Google Translate</sys:String>
+    <sys:String x:Key="Engine_Baidu">Baidu</sys:String>
+    <sys:String x:Key="Engine_OpenAI">OpenAI</sys:String>
+    <sys:String x:Key="Engine_Microsoft">Microsoft (Bing Translator)</sys:String>
+</ResourceDictionary>
