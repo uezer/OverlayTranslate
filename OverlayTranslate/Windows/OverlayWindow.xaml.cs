@@ -17,8 +17,6 @@ public partial class OverlayWindow : Window
     private readonly OverlayWindowViewModel _vm;
     private readonly ScreenshotService _screenshotService;
     private readonly TranslationPipeline _pipeline;
-    private readonly StyleAnalyzer _styleAnalyzer;
-    private readonly ConfigManager _configManager;
 
     private Point _selectionStart;
     private bool _autoPositionToolbar = true;
@@ -26,15 +24,11 @@ public partial class OverlayWindow : Window
     public OverlayWindow(
         OverlayWindowViewModel viewModel,
         ScreenshotService screenshotService,
-        TranslationPipeline pipeline,
-        StyleAnalyzer styleAnalyzer,
-        ConfigManager configManager)
+        TranslationPipeline pipeline)
     {
         _vm = viewModel;
         _screenshotService = screenshotService;
         _pipeline = pipeline;
-        _styleAnalyzer = styleAnalyzer;
-        _configManager = configManager;
 
         InitializeComponent();
 
@@ -53,9 +47,8 @@ public partial class OverlayWindow : Window
         Toolbar.OnTranslatedBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
         Toolbar.OnLanguageChanged += (which, value) =>
         {
-            if (which == "source") _configManager.Settings.Language.Source = value;
-            else _configManager.Settings.Language.Target = value;
-            _configManager.Save();
+            if (which == "source") _vm.SourceLanguage = value;
+            else _vm.TargetLanguage = value;
             if (_vm.State == OverlayState.Result) RerunTranslation();
         };
         Toolbar.OnEngineChanged += (which, value) =>
@@ -80,8 +73,8 @@ public partial class OverlayWindow : Window
         Toolbar.SetEngines(ocrNames, transNames);
         Toolbar.SetSelectedOcrEngine(_vm.CurrentOcrEngineName);
         Toolbar.SetSelectedTranslationEngine(_vm.CurrentTranslationEngineName);
-        Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
-        Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
+        Toolbar.SetSourceLanguage(_vm.SourceLanguage);
+        Toolbar.SetTargetLanguage(_vm.TargetLanguage);
         Toolbar.ResumeEvents();
 
         // 最小化/恢复模式：避免首次 Show 时最大化动画导致白屏闪烁
@@ -241,8 +234,8 @@ public partial class OverlayWindow : Window
 
             // === 阶段 2：翻译 + 译文覆盖 ===
             Toolbar.SetLoading(true);
-            var sourceLang = Toolbar.GetSourceLanguage();
-            var targetLang = Toolbar.GetTargetLanguage();
+            var sourceLang = _vm.SourceLanguage;
+            var targetLang = _vm.TargetLanguage;
 
             var result = await _pipeline.TranslateBlocksAsync(
                 _vm.ScreenshotData, selection,
@@ -302,8 +295,8 @@ public partial class OverlayWindow : Window
         Toolbar.SetLoading(true);
         try
         {
-            var sourceLang = Toolbar.GetSourceLanguage();
-            var targetLang = Toolbar.GetTargetLanguage();
+            var sourceLang = _vm.SourceLanguage;
+            var targetLang = _vm.TargetLanguage;
 
             var result = await _pipeline.TranslateBlocksAsync(
                 _vm.ScreenshotData!, _vm.CurrentSelection,

@@ -69,92 +69,7 @@ public partial class OverlayWindowViewModel : ObservableObject
             CurrentOcrEngineName, CurrentTranslationEngineName);
     }
 
-    // ===== 命令 =====
-
-    public async Task ExecutePipelineAsync(Rect selection)
-    {
-        if (State == OverlayState.Exiting || ScreenshotData == null) return;
-
-        State = OverlayState.Processing;
-        IsLoading = true;
-
-        try
-        {
-            var result = await _pipeline.ExecuteAsync(
-                ScreenshotData, selection,
-                ScreenshotDpiX, ScreenshotDpiY,
-                CurrentOcrEngineName, CurrentTranslationEngineName,
-                _configManager.Settings.Language.Source,
-                _configManager.Settings.Language.Target,
-                Cts.Token);
-
-            if (result == null)
-            {
-                State = OverlayState.Selecting;
-                return;
-            }
-
-            OriginalText = result.OriginalText;
-            LastOcrTextBlocks = result.OcrBlocks;
-            OriginalStyle = result.OriginalStyle;
-            TranslatedText = result.TranslatedText;
-            TranslatedBlocks = result.TranslatedBlocks;
-            FilledImageBytes = result.FilledImageBytes;
-            TranslatedStyle = result.TranslatedStyle;
-            CurrentSelection = selection;
-
-            ViewMode = OverlayViewMode.TranslatedText;
-            State = OverlayState.Result;
-            IsLoading = false;
-        }
-        catch (OperationCanceledException)
-        {
-            IsLoading = false;
-            State = OverlayState.Selecting;
-        }
-        catch (Exception ex)
-        {
-            IsLoading = false;
-            Log.Error(ex, "处理选区失败");
-            State = OverlayState.Selecting;
-        }
-    }
-
-    public async Task ReTranslateAsync()
-    {
-        if (State != OverlayState.Result || ScreenshotData == null || string.IsNullOrEmpty(OriginalText))
-            return;
-
-        IsLoading = true;
-
-        try
-        {
-            var result = await _pipeline.ReTranslateAsync(
-                ScreenshotData, CurrentSelection,
-                LastOcrTextBlocks!,
-                _configManager.Settings.Language.Source,
-                _configManager.Settings.Language.Target,
-                CurrentTranslationEngineName,
-                Cts.Token);
-
-            TranslatedText = result.TranslatedText;
-            TranslatedBlocks = result.TranslatedBlocks;
-
-            if (FilledImageBytes == null)
-                FilledImageBytes = result.FilledImageBytes;
-
-            IsLoading = false;
-        }
-        catch (OperationCanceledException)
-        {
-            IsLoading = false;
-        }
-        catch (Exception ex)
-        {
-            IsLoading = false;
-            Log.Error(ex, "重新翻译失败");
-        }
-    }
+    // ===== 状态管理 =====
 
     public void CancelAndStart()
     {
@@ -185,7 +100,27 @@ public partial class OverlayWindowViewModel : ObservableObject
         State = OverlayState.Idle;
     }
 
-    // ===== 引擎管理 =====
+    // ===== 引擎/语言管理 =====
+
+    public string SourceLanguage
+    {
+        get => _configManager.Settings.Language.Source;
+        set
+        {
+            _configManager.Settings.Language.Source = value;
+            _configManager.Save();
+        }
+    }
+
+    public string TargetLanguage
+    {
+        get => _configManager.Settings.Language.Target;
+        set
+        {
+            _configManager.Settings.Language.Target = value;
+            _configManager.Save();
+        }
+    }
 
     public void SwitchOcrEngine(string engineName)
     {
