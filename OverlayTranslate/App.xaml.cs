@@ -257,6 +257,9 @@ public partial class App : Application
             ["Microsoft"] = sp.GetRequiredService<MicrosoftTranslationEngine>()
         });
 
+        // 注册引擎显示名映射
+        services.AddSingleton<EngineDisplayMap>();
+
         // 注册截图与图像处理服务
         services.AddSingleton<ScreenshotService>();
         services.AddSingleton<ImageProcessor>();

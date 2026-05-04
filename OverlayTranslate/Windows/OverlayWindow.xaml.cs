@@ -18,6 +18,7 @@ public partial class OverlayWindow : Window
     private readonly OverlayWindowViewModel _vm;
     private readonly ScreenshotService _screenshotService;
     private readonly TranslationPipeline _pipeline;
+    private readonly EngineDisplayMap _displayMap;
 
     private Point _selectionStart;
     private bool _autoPositionToolbar = true;
@@ -25,11 +26,13 @@ public partial class OverlayWindow : Window
     public OverlayWindow(
         OverlayWindowViewModel viewModel,
         ScreenshotService screenshotService,
-        TranslationPipeline pipeline)
+        TranslationPipeline pipeline,
+        EngineDisplayMap displayMap)
     {
         _vm = viewModel;
         _screenshotService = screenshotService;
         _pipeline = pipeline;
+        _displayMap = displayMap;
 
         InitializeComponent();
 
@@ -72,7 +75,7 @@ public partial class OverlayWindow : Window
         var transNames = _pipeline.GetAvailableTranslationEngines();
 
         Toolbar.SuspendEvents();
-        Toolbar.SetEngines(ocrNames, transNames);
+        Toolbar.SetEngines(ocrNames, transNames, _displayMap);
         Toolbar.SetSelectedOcrEngine(_vm.CurrentOcrEngineName);
         Toolbar.SetSelectedTranslationEngine(_vm.CurrentTranslationEngineName);
         Toolbar.SetSourceLanguage(_vm.SourceLanguage);
