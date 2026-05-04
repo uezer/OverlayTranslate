@@ -66,6 +66,9 @@ public partial class App : Application
         // 显示主窗口（托盘宿主）
         var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
+
+        // 异步检查更新（不阻塞启动）
+        _ = CheckForUpdateAsync();
     }
 
     public void StartScreenshot()
@@ -280,6 +283,31 @@ public partial class App : Application
         services.AddSingleton<HotkeyManager>();
         services.AddTransient<SettingsWindow>();
         services.AddSingleton<MainWindow>();
+    }
+
+    private async Task CheckForUpdateAsync()
+    {
+        try
+        {
+            var httpClient = Services.GetRequiredService<HttpClient>();
+            var updateService = new UpdateService(httpClient);
+
+            var release = await updateService.CheckForUpdateAsync(CancellationToken.None);
+            if (release != null)
+            {
+                // 确保在 UI 线程显示对话框
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    var dialog = new UpdateDialog(updateService, release);
+                    dialog.Owner = MainWindow;
+                    dialog.ShowDialog();
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "检查更新失败");
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
