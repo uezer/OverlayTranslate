@@ -16,8 +16,18 @@
         </Border.Effect>
         <StackPanel>
             <!-- 翻译中进度条 -->
-            <ProgressBar x:Name="ProgressBar" IsIndeterminate="True" Height="3"
-                         Visibility="Collapsed" Margin="0,0,0,4" />
+            <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,4">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
             <!-- 第一行：语言选择 -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                 <TextBlock Text="原语言:" VerticalAlignment="Center" Margin="0,0,4,0" />
@@ -36,26 +46,36 @@
 
             <!-- 第三行：操作按钮 -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button x:Name="ReselectButton" Content="重选" Margin="0,0,6,0"
-                        Click="OnReselectClick" Padding="12,4" />
-                <Button x:Name="ViewModeButton" Content="原文" Margin="0,0,6,0"
-                        Click="OnViewModeClick" Padding="12,4" />
-                <Button x:Name="ExpandButton" Content="▼" Margin="0,0,6,0"
-                        Click="OnExpandClick" Padding="6,4" />
-                <Button x:Name="CopyOriginalButton" Content="复制原文" Margin="0,0,6,0"
-                        Click="OnCopyOriginalClick" Padding="12,4" />
-                <Button x:Name="CopyTranslatedButton" Content="复制译文" Margin="0,0,6,0"
-                        Click="OnCopyTranslatedClick" Padding="12,4" />
-                <Button x:Name="ExitButton" Content="退出" Margin="0,0,0,0"
-                        Click="OnExitClick" Padding="12,4" />
+                <Button Content="重选" Margin="0,0,6,0"
+                        Command="{Binding ReselectCommand}" Padding="12,4" />
+                <Button Content="{Binding ViewModeText}" Margin="0,0,6,0"
+                        Command="{Binding ToggleViewModeCommand}" Padding="12,4" />
+                <Button Content="{Binding ExpandButtonText}" Margin="0,0,6,0"
+                        Command="{Binding ToggleExpandCommand}" Padding="6,4" />
+                <Button Content="复制原文" Margin="0,0,6,0"
+                        Command="{Binding CopyOriginalCommand}" Padding="12,4" />
+                <Button Content="复制译文" Margin="0,0,6,0"
+                        Command="{Binding CopyTranslatedCommand}" Padding="12,4" />
+                <Button Content="退出" Margin="0,0,0,0"
+                        Command="{Binding ExitCommand}" Padding="12,4" />
             </StackPanel>
 
             <!-- 扩展面板（默认隐藏） -->
-            <StackPanel x:Name="ExpandPanel" Visibility="Collapsed" Margin="0,4,0,0">
+            <StackPanel Margin="0,4,0,0">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ExpandPanelVisible}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
                 <Separator Margin="0,0,0,4" />
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button Content="显示原图" Margin="0,0,6,0"
-                            Click="OnShowOriginalImageClick" Padding="12,4" />
+                            Command="{Binding ShowOriginalImageCommand}" Padding="12,4" />
                     <CheckBox x:Name="OriginalBgFillCheckBox" Content="原文底色覆盖"
                               IsChecked="True" VerticalAlignment="Center" Margin="0,0,12,0"
                               Click="OnOriginalBgFillClick" />

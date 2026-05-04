@@ -1,87 +1,34 @@
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using OverlayTranslate.Controls;
-using OverlayTranslate.Engines;
 using OverlayTranslate.Infrastructure;
 using OverlayTranslate.Models;
 using OverlayTranslate.Services;
+using OverlayTranslate.ViewModels;
 using Serilog;
 
 namespace OverlayTranslate.Windows;
 
-public enum OverlayState
-{
-    Idle,
-    Selecting,
-    Processing,
-    Result,
-    Exiting
-}
-
-public enum OverlayViewMode
-{
-    OriginalImage,
-    OriginalText,
-    TranslatedText
-}
-
 public partial class OverlayWindow : Window
 {
+    private readonly OverlayWindowViewModel _vm;
     private readonly ScreenshotService _screenshotService;
-    private readonly ImageProcessor _imageProcessor;
-    private readonly TextRenderer _textRenderer;
-    private readonly StyleAnalyzer _styleAnalyzer;
-    private readonly IOcrEngine _ocrEngine;
-    private readonly ITranslationEngine _translationEngine;
-    private readonly Dictionary<string, IOcrEngine> _ocrEngines;
-    private readonly Dictionary<string, ITranslationEngine> _translationEngines;
-    private readonly ConfigManager _configManager;
+    private readonly TranslationPipeline _pipeline;
 
-    private OverlayState _state = OverlayState.Idle;
-    private OverlayViewMode _viewMode = OverlayViewMode.OriginalText;
     private Point _selectionStart;
-    private Rect _currentSelection;
-    private byte[]? _screenshotData;
-    private string _originalText = "";
-    private string _translatedText = "";
-    private CancellationTokenSource _cts = new();
-    private double _screenshotDpiX = 96;
-    private double _screenshotDpiY = 96;
     private bool _autoPositionToolbar = true;
-    private string _currentOcrEngineName = "";
-    private string _currentTranslationEngineName = "";
-
-    // 缓存：用于视图切换时无需重新 OCR/翻译
-    private IReadOnlyList<Models.TextBlock>? _lastOcrTextBlocks;
-    private IReadOnlyList<(string Text, Rect BoundingBox)>? _translatedBlocks;
-    private byte[]? _filledImageBytes;
-    private TextStyleInfo? _originalStyle;
-    private TextStyleInfo? _translatedStyle;
 
     public OverlayWindow(
+        OverlayWindowViewModel viewModel,
         ScreenshotService screenshotService,
-        ImageProcessor imageProcessor,
-        TextRenderer textRenderer,
-        StyleAnalyzer styleAnalyzer,
-        IOcrEngine ocrEngine,
-        ITranslationEngine translationEngine,
-        Dictionary<string, IOcrEngine> ocrEngines,
-        Dictionary<string, ITranslationEngine> translationEngines,
-        ConfigManager configManager)
+        TranslationPipeline pipeline)
     {
+        _vm = viewModel;
         _screenshotService = screenshotService;
-        _imageProcessor = imageProcessor;
-        _textRenderer = textRenderer;
-        _styleAnalyzer = styleAnalyzer;
-        _ocrEngine = ocrEngine;
-        _translationEngine = translationEngine;
-        _ocrEngines = ocrEngines;
-        _translationEngines = translationEngines;
-        _configManager = configManager;
+        _pipeline = pipeline;
 
         InitializeComponent();
 
@@ -91,69 +38,44 @@ public partial class OverlayWindow : Window
             Mask.Height = args.NewSize.Height;
         };
 
-        Toolbar.OnReselect += HandleReselect;
-        Toolbar.OnExit += HandleExit;
-        Toolbar.OnDragStarted += () => _autoPositionToolbar = false;
-        Toolbar.OnViewModeChanged += mode => ApplyViewMode(mode);
-        Toolbar.OnShowOriginalImage += () => ApplyViewMode(OverlayViewMode.OriginalImage);
-        Toolbar.OnOriginalBgFillChanged += _ => ApplyViewMode(_viewMode);
-        Toolbar.OnTranslatedBgFillChanged += _ => ApplyViewMode(_viewMode);
-        Toolbar.OnLanguageChanged += (which, value) =>
+        // 工具栏事件绑定（通过 ViewModel）
+        var toolbarVm = Toolbar.ViewModel;
+        toolbarVm.OnReselect += HandleReselect;
+        toolbarVm.OnExit += ExitOverlay;
+        toolbarVm.OnDragStarted += () => _autoPositionToolbar = false;
+        toolbarVm.OnViewModeChanged += mode => ApplyViewMode(mode);
+        toolbarVm.OnOriginalBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
+        toolbarVm.OnTranslatedBgFillChanged += _ => ApplyViewMode(_vm.ViewMode);
+        toolbarVm.OnLanguageChanged += (which, value) =>
         {
-            if (which == "source")
-                _configManager.Settings.Language.Source = value;
-            else
-                _configManager.Settings.Language.Target = value;
-            _configManager.Save();
-            RerunTranslation();
+            if (which == "source") _vm.SourceLanguage = value;
+            else _vm.TargetLanguage = value;
+            if (_vm.State == OverlayState.Result) RerunTranslation();
         };
-        Toolbar.OnEngineChanged += (which, value) =>
+        toolbarVm.OnEngineChanged += (which, value) =>
         {
             if (which == "ocr")
             {
-                var name = UnmapOcrDisplayName(value);
-                if (_ocrEngines.ContainsKey(name))
-                {
-                    _currentOcrEngineName = name;
-                    _configManager.Settings.Ocr.ActiveEngine = name;
-                    _configManager.Save();
-                    Log.Information("切换 OCR 引擎: {Engine}", name);
-                    RerunAll();
-                }
+                _vm.SwitchOcrEngine(value);
+                if (_vm.State == OverlayState.Result) RerunAll();
             }
             else if (which == "translation")
             {
-                var name = UnmapTranslationDisplayName(value);
-                if (_translationEngines.ContainsKey(name))
-                {
-                    _currentTranslationEngineName = name;
-                    _configManager.Settings.Translation.ActiveEngine = name;
-                    _configManager.Save();
-                    Log.Information("切换翻译引擎: {Engine}", name);
-                    RerunTranslation();
-                }
+                _vm.SwitchTranslationEngine(value);
+                if (_vm.State == OverlayState.Result) RerunTranslation();
             }
         };
 
-        var ocrNames = _ocrEngines.Keys.ToArray();
-        var transNames = _translationEngines.Keys.ToArray();
-        _currentOcrEngineName = _configManager.Settings.Ocr.ActiveEngine;
-        _currentTranslationEngineName = _configManager.Settings.Translation.ActiveEngine;
-        Log.Information("配置加载: OCR={Ocr}, Translation={Trans}", _currentOcrEngineName, _currentTranslationEngineName);
-        if (!_ocrEngines.ContainsKey(_currentOcrEngineName))
-            _currentOcrEngineName = ocrNames.FirstOrDefault() ?? "";
-        if (!_translationEngines.ContainsKey(_currentTranslationEngineName))
-            _currentTranslationEngineName = transNames.FirstOrDefault() ?? "";
+        // 初始化工具栏引擎列表
+        var ocrNames = _pipeline.GetAvailableOcrEngines();
+        var transNames = _pipeline.GetAvailableTranslationEngines();
 
-        // 先暂停事件，避免 SetEngines 触发 SelectionChanged 覆盖配置
         Toolbar.SuspendEvents();
-        Toolbar.SetEngines(
-            ocrNames.Select(MapOcrDisplayName).ToArray(),
-            transNames.Select(MapTranslationDisplayName).ToArray());
-        Toolbar.SetSelectedOcrEngine(MapOcrDisplayName(_currentOcrEngineName));
-        Toolbar.SetSelectedTranslationEngine(MapTranslationDisplayName(_currentTranslationEngineName));
-        Toolbar.SetSourceLanguage(_configManager.Settings.Language.Source);
-        Toolbar.SetTargetLanguage(_configManager.Settings.Language.Target);
+        Toolbar.SetEngines(ocrNames, transNames);
+        Toolbar.SetSelectedOcrEngine(_vm.CurrentOcrEngineName);
+        Toolbar.SetSelectedTranslationEngine(_vm.CurrentTranslationEngineName);
+        Toolbar.SetSourceLanguage(_vm.SourceLanguage);
+        Toolbar.SetTargetLanguage(_vm.TargetLanguage);
         Toolbar.ResumeEvents();
 
         // 最小化/恢复模式：避免首次 Show 时最大化动画导致白屏闪烁
@@ -161,16 +83,19 @@ public partial class OverlayWindow : Window
         WindowState = WindowState.Minimized;
     }
 
+    // ============ 显示覆盖层 ============
+
     public void ShowForSelection()
     {
         try
         {
-            _screenshotData = _screenshotService.CaptureFullScreen();
-            Log.Information("ShowForSelection: screenshot {Size} bytes", _screenshotData.Length);
+            var screenshotData = _screenshotService.CaptureFullScreen();
+            Log.Information("ShowForSelection: screenshot {Size} bytes", screenshotData.Length);
 
-            var bitmapImage = BytesToBitmapImage(_screenshotData);
-            _screenshotDpiX = bitmapImage.DpiX > 0 ? bitmapImage.DpiX : 96;
-            _screenshotDpiY = bitmapImage.DpiY > 0 ? bitmapImage.DpiY : 96;
+            var bitmapImage = BytesToBitmapImage(screenshotData);
+            _vm.ScreenshotData = screenshotData;
+            _vm.ScreenshotDpiX = bitmapImage.DpiX > 0 ? bitmapImage.DpiX : 96;
+            _vm.ScreenshotDpiY = bitmapImage.DpiY > 0 ? bitmapImage.DpiY : 96;
             BackgroundImage.Source = bitmapImage;
 
             Mask.ClearSelection();
@@ -178,7 +103,7 @@ public partial class OverlayWindow : Window
             TextOverlayCanvas.Children.Clear();
             TextOverlayCanvas.IsHitTestVisible = false;
             Toolbar.Visibility = Visibility.Collapsed;
-            _state = OverlayState.Selecting;
+            _vm.State = OverlayState.Selecting;
 
             Show();
             Activate();
@@ -186,13 +111,15 @@ public partial class OverlayWindow : Window
         catch (Exception ex)
         {
             Log.Error(ex, "显示覆盖层失败");
-            _state = OverlayState.Idle;
+            _vm.State = OverlayState.Idle;
         }
     }
 
+    // ============ 鼠标事件 ============
+
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
-        if (_state != OverlayState.Selecting) return;
+        if (_vm.State != OverlayState.Selecting) return;
         _selectionStart = e.GetPosition(RootGrid);
         CaptureMouse();
         base.OnMouseLeftButtonDown(e);
@@ -200,43 +127,43 @@ public partial class OverlayWindow : Window
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
-        if (_state != OverlayState.Selecting || !IsMouseCaptured) return;
+        if (_vm.State != OverlayState.Selecting || !IsMouseCaptured) return;
 
         var currentPoint = e.GetPosition(RootGrid);
-        _currentSelection = new Rect(
+        _vm.CurrentSelection = new Rect(
             Math.Min(_selectionStart.X, currentPoint.X),
             Math.Min(_selectionStart.Y, currentPoint.Y),
             Math.Abs(currentPoint.X - _selectionStart.X),
             Math.Abs(currentPoint.Y - _selectionStart.Y));
 
-        Mask.SetSelection(_currentSelection);
-        SelectionLayer.UpdateSelection(_currentSelection);
+        Mask.SetSelection(_vm.CurrentSelection);
+        SelectionLayer.UpdateSelection(_vm.CurrentSelection);
         base.OnMouseMove(e);
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
-        if (_state != OverlayState.Selecting || !IsMouseCaptured) return;
+        if (_vm.State != OverlayState.Selecting || !IsMouseCaptured) return;
         ReleaseMouseCapture();
 
         var currentPoint = e.GetPosition(RootGrid);
-        _currentSelection = new Rect(
+        _vm.CurrentSelection = new Rect(
             Math.Min(_selectionStart.X, currentPoint.X),
             Math.Min(_selectionStart.Y, currentPoint.Y),
             Math.Abs(currentPoint.X - _selectionStart.X),
             Math.Abs(currentPoint.Y - _selectionStart.Y));
 
-        if (_currentSelection.Width < 5 || _currentSelection.Height < 5)
+        if (_vm.CurrentSelection.Width < 5 || _vm.CurrentSelection.Height < 5)
         {
             Mask.ClearSelection();
             SelectionLayer.ClearSelection();
             return;
         }
 
-        Mask.SetSelection(_currentSelection);
-        SelectionLayer.UpdateSelection(_currentSelection);
-        CancelAndStart();
-        _ = ProcessSelectionAsync(_currentSelection, _cts.Token);
+        Mask.SetSelection(_vm.CurrentSelection);
+        SelectionLayer.UpdateSelection(_vm.CurrentSelection);
+        _vm.CancelAndStart();
+        _ = ProcessSelectionAsync(_vm.CurrentSelection);
         base.OnMouseLeftButtonUp(e);
     }
 
@@ -244,7 +171,7 @@ public partial class OverlayWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            CancelAndStart();
+            _vm.CancelAndStart();
             ExitOverlay();
             e.Handled = true;
         }
@@ -253,7 +180,7 @@ public partial class OverlayWindow : Window
 
     protected override void OnMouseRightButtonDown(MouseButtonEventArgs e)
     {
-        CancelAndStart();
+        _vm.CancelAndStart();
         ExitOverlay();
         e.Handled = true;
         base.OnMouseRightButtonDown(e);
@@ -261,111 +188,83 @@ public partial class OverlayWindow : Window
 
     // ============ 核心处理流程 ============
 
-    private async Task ProcessSelectionAsync(Rect selection, CancellationToken ct)
+    private async Task ProcessSelectionAsync(Rect selection)
     {
-        if (_state == OverlayState.Exiting || _screenshotData == null) return;
+        if (_vm.State == OverlayState.Exiting || _vm.ScreenshotData == null) return;
 
-        _state = OverlayState.Processing;
-        Toolbar.SetLoading(true);
+        _vm.State = OverlayState.Processing;
+        Toolbar.ViewModel.IsLoading = true;
 
         try
         {
             // === 阶段 1：OCR + 原文覆盖 ===
-            ct.ThrowIfCancellationRequested();
-            var regionImage = _screenshotService.CropRegion(_screenshotData, selection);
+            _vm.Cts.Token.ThrowIfCancellationRequested();
+            var ocrEngine = _pipeline.GetOcrEngine(_vm.CurrentOcrEngineName);
+            var regionImage = _screenshotService.CropRegion(_vm.ScreenshotData, selection);
 
-            var ocrEngine = GetCurrentOcrEngine();
-            var ocrResult = await ocrEngine.RecognizeAsync(regionImage, ct: ct);
-            ct.ThrowIfCancellationRequested();
+            var ocrResult = await ocrEngine.RecognizeAsync(regionImage, ct: _vm.Cts.Token);
+            _vm.Cts.Token.ThrowIfCancellationRequested();
 
             if (ocrResult.TextBlocks.Count == 0)
             {
-                _state = OverlayState.Selecting;
+                _vm.State = OverlayState.Selecting;
                 return;
             }
 
-            _originalText = ocrResult.FullText;
-            _lastOcrTextBlocks = ocrResult.TextBlocks;
+            _vm.OriginalText = ocrResult.FullText;
+            _vm.LastOcrTextBlocks = ocrResult.TextBlocks;
+            _vm.CurrentSelection = selection;
             Log.Information("OCR: {Count} blocks, {Text}", ocrResult.TextBlocks.Count,
-                _originalText.Length > 50 ? _originalText[..50] + "..." : _originalText);
+                _vm.OriginalText.Length > 50 ? _vm.OriginalText[..50] + "..." : _vm.OriginalText);
 
-            // 计算样式
-            var dpiScaleX = _screenshotDpiX / 96.0;
-            var dpiScaleY = _screenshotDpiY / 96.0;
-            var wpfBgColor = System.Windows.Media.Color.FromRgb(0, 0, 0); // 占位，翻译阶段再采样
-            _originalStyle = ComputeStyle(ocrResult.TextBlocks, selection, dpiScaleY, wpfBgColor);
+            // 显示原文覆盖（即时反馈）
+            var dpiScaleX = _vm.ScreenshotDpiX / 96.0;
+            var dpiScaleY = _vm.ScreenshotDpiY / 96.0;
 
-            // 显示原文覆盖
             Mask.ClearSelection();
             SelectionLayer.ClearSelection();
             TextOverlayCanvas.IsHitTestVisible = true;
-            PopulateTextOverlays(ocrResult.TextBlocks, selection, _originalStyle, dpiScaleX, dpiScaleY, true);
+            PopulateTextOverlays(ocrResult.TextBlocks, selection, dpiScaleX, dpiScaleY);
 
-            _viewMode = OverlayViewMode.OriginalText;
-            Toolbar.SetData(_originalText, "");
-            Toolbar.SetViewMode(OverlayViewMode.OriginalText);
+            _vm.ViewMode = OverlayViewMode.OriginalText;
+            Toolbar.ViewModel.SetData(_vm.OriginalText, "");
+            Toolbar.ViewModel.SetViewMode(OverlayViewMode.OriginalText);
             Toolbar.Visibility = Visibility.Visible;
             PositionToolbar(selection);
-            _state = OverlayState.Result;
+            _vm.State = OverlayState.Result;
 
             // === 阶段 2：翻译 + 译文覆盖 ===
-            Toolbar.SetLoading(true);
-            var sourceLang = Toolbar.GetSourceLanguage();
-            var targetLang = Toolbar.GetTargetLanguage();
-            var translationEngine = GetCurrentTranslationEngine();
+            Toolbar.ViewModel.IsLoading = true;
+            var sourceLang = _vm.SourceLanguage;
+            var targetLang = _vm.TargetLanguage;
 
-            // 尝试整段翻译，再按行匹配
-            var translationResult = await translationEngine.TranslateAsync(_originalText, sourceLang, targetLang, ct);
+            var result = await _pipeline.TranslateBlocksAsync(
+                _vm.ScreenshotData, selection,
+                ocrResult.TextBlocks, _vm.OriginalText,
+                _vm.ScreenshotDpiX, _vm.ScreenshotDpiY,
+                _vm.CurrentTranslationEngineName,
+                sourceLang, targetLang, _vm.Cts.Token);
 
-            _translatedText = translationResult.TranslatedText;
-            Log.Information("翻译: {Text}", _translatedText.Length > 50 ? _translatedText[..50] + "..." : _translatedText);
+            _vm.TranslatedText = result.TranslatedText;
+            _vm.TranslatedBlocks = result.TranslatedBlocks;
+            _vm.FilledImageBytes = result.FilledImageBytes;
+            _vm.TranslatedStyle = result.TranslatedStyle;
+            Log.Information("翻译: {Text}", _vm.TranslatedText.Length > 50 ? _vm.TranslatedText[..50] + "..." : _vm.TranslatedText);
 
-            var translatedLines = _translatedText.Split('\n');
-            var blocks = ocrResult.TextBlocks;
-            var translatedBlocks = new List<(string Text, Rect BoundingBox)>();
-
-            if (translatedLines.Length == blocks.Count)
-            {
-                for (int i = 0; i < blocks.Count; i++)
-                    translatedBlocks.Add((translatedLines[i], blocks[i].BoundingBox));
-            }
-            else
-            {
-                // 行数不匹配，逐块翻译
-                foreach (var block in blocks)
-                {
-                    if (string.IsNullOrWhiteSpace(block.Text)) continue;
-                    var r = await translationEngine.TranslateAsync(block.Text, sourceLang, targetLang, ct);
-                    translatedBlocks.Add((r.TranslatedText, block.BoundingBox));
-                }
-            }
-            _translatedBlocks = translatedBlocks;
-
-            // 采样背景色并填充
-            var bgColor = _imageProcessor.SampleBackgroundColor(_screenshotData, selection);
-            wpfBgColor = System.Windows.Media.Color.FromRgb(
-                (byte)Math.Clamp(bgColor.Val2, 0, 255),
-                (byte)Math.Clamp(bgColor.Val1, 0, 255),
-                (byte)Math.Clamp(bgColor.Val0, 0, 255));
-            _translatedStyle = ComputeStyle(blocks, selection, dpiScaleY, wpfBgColor);
-
-            _filledImageBytes = _imageProcessor.FillRegion(_screenshotData, selection, bgColor);
-
-            // 自动切换到译文视图
-            Toolbar.SetData(_originalText, _translatedText);
+            Toolbar.ViewModel.SetData(_vm.OriginalText, _vm.TranslatedText);
             ApplyViewMode(OverlayViewMode.TranslatedText);
-            Toolbar.SetViewMode(OverlayViewMode.TranslatedText);
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.SetViewMode(OverlayViewMode.TranslatedText);
+            Toolbar.ViewModel.IsLoading = false;
         }
         catch (OperationCanceledException)
         {
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.IsLoading = false;
         }
         catch (Exception ex)
         {
-            Toolbar.SetLoading(false);
+            Toolbar.ViewModel.IsLoading = false;
             Log.Error(ex, "处理选区失败");
-            _state = OverlayState.Selecting;
+            _vm.State = OverlayState.Selecting;
 
             Hide();
             MessageBox.Show($"处理失败: {ex.Message}\n\n请检查引擎配置（右键托盘图标 → 设置）。",
@@ -375,40 +274,87 @@ public partial class OverlayWindow : Window
         }
     }
 
+    // ============ 重新处理 ============
+
+    private void RerunAll()
+    {
+        if (_vm.State != OverlayState.Result || _vm.ScreenshotData == null) return;
+        _vm.FilledImageBytes = null;
+        _vm.CancelAndStart();
+        _ = ProcessSelectionAsync(_vm.CurrentSelection);
+    }
+
+    private void RerunTranslation()
+    {
+        if (_vm.State != OverlayState.Result || _vm.ScreenshotData == null) return;
+        _vm.CancelAndStart();
+        _ = ReTranslateAsync();
+    }
+
+    private async Task ReTranslateAsync()
+    {
+        Toolbar.ViewModel.IsLoading = true;
+        try
+        {
+            var sourceLang = _vm.SourceLanguage;
+            var targetLang = _vm.TargetLanguage;
+
+            var result = await _pipeline.TranslateBlocksAsync(
+                _vm.ScreenshotData!, _vm.CurrentSelection,
+                _vm.LastOcrTextBlocks!, _vm.OriginalText,
+                _vm.ScreenshotDpiX, _vm.ScreenshotDpiY,
+                _vm.CurrentTranslationEngineName,
+                sourceLang, targetLang, _vm.Cts.Token);
+
+            _vm.TranslatedText = result.TranslatedText;
+            _vm.TranslatedBlocks = result.TranslatedBlocks;
+            if (_vm.FilledImageBytes == null)
+                _vm.FilledImageBytes = result.FilledImageBytes;
+            _vm.TranslatedStyle = result.TranslatedStyle;
+
+            Toolbar.ViewModel.SetData(_vm.OriginalText, _vm.TranslatedText);
+            if (_vm.ViewMode == OverlayViewMode.TranslatedText)
+                ApplyViewMode(OverlayViewMode.TranslatedText);
+            Toolbar.ViewModel.IsLoading = false;
+        }
+        catch (OperationCanceledException) { Toolbar.ViewModel.IsLoading = false; }
+        catch (Exception ex)
+        {
+            Toolbar.ViewModel.IsLoading = false;
+            Log.Error(ex, "重新翻译失败");
+        }
+    }
+
     // ============ 视图切换 ============
 
     private void ApplyViewMode(OverlayViewMode mode)
     {
-        _viewMode = mode;
+        _vm.ViewMode = mode;
         TextOverlayCanvas.Children.Clear();
 
-        var dpiScaleX = _screenshotDpiX / 96.0;
-        var dpiScaleY = _screenshotDpiY / 96.0;
-        var originalBgFill = Toolbar.IsOriginalBgFillEnabled;
-        var translatedBgFill = Toolbar.IsTranslatedBgFillEnabled;
+        var dpiScaleX = _vm.ScreenshotDpiX / 96.0;
+        var dpiScaleY = _vm.ScreenshotDpiY / 96.0;
 
         switch (mode)
         {
             case OverlayViewMode.OriginalImage:
-                if (_screenshotData != null)
-                    BackgroundImage.Source = BytesToBitmapImage(_screenshotData);
+                if (_vm.ScreenshotData != null)
+                    BackgroundImage.Source = BytesToBitmapImage(_vm.ScreenshotData);
                 break;
 
             case OverlayViewMode.OriginalText:
-                if (_screenshotData != null)
-                    BackgroundImage.Source = BytesToBitmapImage(_screenshotData);
-                if (_lastOcrTextBlocks != null && _originalStyle != null)
-                    PopulateTextOverlays(_lastOcrTextBlocks, _currentSelection, _originalStyle, dpiScaleX, dpiScaleY, originalBgFill);
+                if (_vm.ScreenshotData != null)
+                    BackgroundImage.Source = BytesToBitmapImage(_vm.ScreenshotData);
+                if (_vm.LastOcrTextBlocks != null)
+                    PopulateTextOverlays(_vm.LastOcrTextBlocks, _vm.CurrentSelection, dpiScaleX, dpiScaleY);
                 break;
 
             case OverlayViewMode.TranslatedText:
-                // 译文底色覆盖 = FillRegion + TextBox 背景，统一控制
-                if (translatedBgFill && _filledImageBytes != null)
-                    BackgroundImage.Source = BytesToBitmapImage(_filledImageBytes);
-                else if (_screenshotData != null)
-                    BackgroundImage.Source = BytesToBitmapImage(_screenshotData);
-                if (_translatedBlocks != null && _translatedStyle != null)
-                    PopulateTranslatedOverlays(_translatedBlocks, _currentSelection, _translatedStyle, dpiScaleX, dpiScaleY, translatedBgFill);
+                if (Toolbar.ViewModel.IsTranslatedBgFillEnabled && _vm.FilledImageBytes != null)
+                    BackgroundImage.Source = BytesToBitmapImage(_vm.FilledImageBytes);
+                else if (_vm.ScreenshotData != null)
+                    BackgroundImage.Source = BytesToBitmapImage(_vm.ScreenshotData);
+                PopulateTranslatedOverlays();
                 break;
         }
     }
@@ -416,7 +362,7 @@ public partial class OverlayWindow : Window
     // ============ TextBox 覆盖 ============
 
     private void PopulateTextOverlays(IReadOnlyList<Models.TextBlock> blocks, Rect selection,
-        TextStyleInfo style, double dpiScaleX, double dpiScaleY, bool bgFill)
+        double dpiScaleX, double dpiScaleY)
     {
         foreach (var block in blocks)
         {
@@ -428,22 +374,28 @@ public partial class OverlayWindow : Window
             var dipH = block.BoundingBox.Height / dpiScaleY;
 
             var fontSize = Math.Max(8, dipH * 0.75);
-            var tb = CreateSelectableTextBox(block.Text, fontSize, dipW, dipH, style.TextColor, bgFill);
+            var tb = CreateSelectableTextBox(block.Text, fontSize, dipW, dipH, Colors.White, true);
             Canvas.SetLeft(tb, dipX);
             Canvas.SetTop(tb, dipY);
             TextOverlayCanvas.Children.Add(tb);
         }
     }
 
-    private void PopulateTranslatedOverlays(IReadOnlyList<(string Text, Rect BoundingBox)> blocks,
-        Rect selection, TextStyleInfo style, double dpiScaleX, double dpiScaleY, bool bgFill)
+    private void PopulateTranslatedOverlays()
     {
-        foreach (var (text, bbox) in blocks)
+        if (_vm.TranslatedBlocks == null || _vm.TranslatedStyle == null) return;
+
+        var dpiScaleX = _vm.ScreenshotDpiX / 96.0;
+        var dpiScaleY = _vm.ScreenshotDpiY / 96.0;
+        var style = _vm.TranslatedStyle;
+        var bgFill = Toolbar.ViewModel.IsTranslatedBgFillEnabled;
+
+        foreach (var (text, bbox) in _vm.TranslatedBlocks)
         {
             if (string.IsNullOrWhiteSpace(text)) continue;
 
-            var dipX = selection.X + bbox.X / dpiScaleX;
-            var dipY = selection.Y + bbox.Y / dpiScaleY;
+            var dipX = _vm.CurrentSelection.X + bbox.X / dpiScaleX;
+            var dipY = _vm.CurrentSelection.Y + bbox.Y / dpiScaleY;
             var dipW = bbox.Width / dpiScaleX;
             var dipH = bbox.Height / dpiScaleY;
 
@@ -481,102 +433,6 @@ public partial class OverlayWindow : Window
             VerticalContentAlignment = VerticalAlignment.Top,
             Cursor = Cursors.IBeam
         };
-    }
-
-    private TextStyleInfo ComputeStyle(IReadOnlyList<Models.TextBlock> blocks, Rect selection,
-        double dpiScaleY, Color bgColor)
-    {
-        var heights = blocks
-            .Where(b => b.BoundingBox.Height > 0)
-            .Select(b => b.BoundingBox.Height / dpiScaleY)
-            .OrderBy(h => h)
-            .ToArray();
-        var baseFontSize = heights.Length > 0 ? heights[heights.Length / 2] : selection.Height * 0.75;
-
-        var fontMode = _configManager.Settings.Other.FontSizeMode;
-        var customSize = _configManager.Settings.Other.CustomFontSize;
-        return _styleAnalyzer.Analyze(selection, _originalText, baseFontSize, fontMode, customSize, bgColor);
-    }
-
-    // ============ 重新处理 ============
-
-    private void RerunAll()
-    {
-        if (_state != OverlayState.Result || _screenshotData == null) return;
-        _filledImageBytes = null;
-        CancelAndStart();
-        _ = ProcessSelectionAsync(_currentSelection, _cts.Token);
-    }
-
-    private void RerunTranslation()
-    {
-        if (_state != OverlayState.Result || _screenshotData == null || string.IsNullOrEmpty(_originalText)) return;
-        CancelAndStart();
-        _ = ReTranslateAsync(_cts.Token);
-    }
-
-    private void CancelAndStart()
-    {
-        _cts.Cancel();
-        _cts.Dispose();
-        _cts = new CancellationTokenSource();
-    }
-
-    private async Task ReTranslateAsync(CancellationToken ct)
-    {
-        Toolbar.SetLoading(true);
-        try
-        {
-            var sourceLang = Toolbar.GetSourceLanguage();
-            var targetLang = Toolbar.GetTargetLanguage();
-            var engine = GetCurrentTranslationEngine();
-            var blocks = _lastOcrTextBlocks;
-            if (blocks == null || blocks.Count == 0) { Toolbar.SetLoading(false); return; }
-
-            var translatedBlocks = new List<(string Text, Rect BoundingBox)>();
-            var allTexts = new List<string>();
-            foreach (var block in blocks)
-            {
-                ct.ThrowIfCancellationRequested();
-                if (string.IsNullOrWhiteSpace(block.Text)) continue;
-                var r = await engine.TranslateAsync(block.Text, sourceLang, targetLang, ct);
-                translatedBlocks.Add((r.TranslatedText, block.BoundingBox));
-                allTexts.Add(r.TranslatedText);
-            }
-
-            _translatedText = string.Join("\n", allTexts);
-            _translatedBlocks = translatedBlocks;
-
-            // 如果之前没有填充图，生成一个
-            if (_filledImageBytes == null)
-            {
-                var bgColor = _imageProcessor.SampleBackgroundColor(_screenshotData!, _currentSelection);
-                _filledImageBytes = _imageProcessor.FillRegion(_screenshotData!, _currentSelection, bgColor);
-            }
-
-            ct.ThrowIfCancellationRequested();
-
-            // 如果当前在译文视图，更新覆盖
-            if (_viewMode == OverlayViewMode.TranslatedText)
-            {
-                var dpiScaleX = _screenshotDpiX / 96.0;
-                var dpiScaleY = _screenshotDpiY / 96.0;
-                if (_translatedStyle != null)
-                    PopulateTranslatedOverlays(translatedBlocks, _currentSelection, _translatedStyle, dpiScaleX, dpiScaleY, Toolbar.IsTranslatedBgFillEnabled);
-            }
-
-            Toolbar.SetData(_originalText, _translatedText);
-            Toolbar.SetLoading(false);
-        }
-        catch (OperationCanceledException)
-        {
-            Toolbar.SetLoading(false);
-        }
-        catch (Exception ex)
-        {
-            Toolbar.SetLoading(false);
-            Log.Error(ex, "重新翻译失败");
-        }
     }
 
     // ============ 工具栏定位 ============
@@ -629,84 +485,30 @@ public partial class OverlayWindow : Window
     private void HandleReselect()
     {
         _autoPositionToolbar = true;
-        CancelAndStart();
-        _state = OverlayState.Selecting;
+        _vm.ClearForReselect();
         Mask.ClearSelection();
         SelectionLayer.ClearSelection();
         TextOverlayCanvas.Children.Clear();
         TextOverlayCanvas.IsHitTestVisible = false;
         Toolbar.Visibility = Visibility.Collapsed;
 
-        if (_screenshotData != null)
-            BackgroundImage.Source = BytesToBitmapImage(_screenshotData);
+        if (_vm.ScreenshotData != null)
+            BackgroundImage.Source = BytesToBitmapImage(_vm.ScreenshotData);
     }
-
-    private void HandleExit() => ExitOverlay();
 
     private void ExitOverlay()
     {
-        _state = OverlayState.Exiting;
-        _cts.Cancel();
+        _vm.ClearForExit();
         Mask.ClearSelection();
         SelectionLayer.ClearSelection();
         TextOverlayCanvas.Children.Clear();
         TextOverlayCanvas.IsHitTestVisible = false;
         Toolbar.Visibility = Visibility.Collapsed;
         BackgroundImage.Source = null;
-        _screenshotData = null;
-        _lastOcrTextBlocks = null;
-        _translatedBlocks = null;
-        _filledImageBytes = null;
-        _originalStyle = null;
-        _translatedStyle = null;
         Hide();
-        _state = OverlayState.Idle;
     }
 
-    // ============ 引擎辅助 ============
-
-    private IOcrEngine GetCurrentOcrEngine()
-    {
-        if (!string.IsNullOrEmpty(_currentOcrEngineName) && _ocrEngines.TryGetValue(_currentOcrEngineName, out var e) && e.IsAvailable)
-            return e;
-        return _ocrEngine;
-    }
-
-    private ITranslationEngine GetCurrentTranslationEngine()
-    {
-        if (!string.IsNullOrEmpty(_currentTranslationEngineName) && _translationEngines.TryGetValue(_currentTranslationEngineName, out var e) && e.IsAvailable)
-            return e;
-        return _translationEngine;
-    }
-
-    private static string MapOcrDisplayName(string engineName) => engineName switch
-    {
-        "PaddleOCR" => "PaddleOCR (本地)",
-        "RemoteOCR" => "RemoteOCR (远程)",
-        _ => engineName
-    };
-
-    private static string UnmapOcrDisplayName(string displayName) => displayName switch
-    {
-        "PaddleOCR (本地)" => "PaddleOCR",
-        "RemoteOCR (远程)" => "RemoteOCR",
-        _ => displayName
-    };
-
-    private static string MapTranslationDisplayName(string engineName) => engineName switch
-    {
-        "Google" => "Google",
-        "DeepL" => "DeepL",
-        "Baidu" => "百度",
-        "OpenAI" => "OpenAI",
-        _ => engineName
-    };
-
-    private static string UnmapTranslationDisplayName(string displayName) => displayName switch
-    {
-        "百度" => "Baidu",
-        _ => displayName
-    };
+    // ============ 工具函数 ============
 
     private static BitmapImage BytesToBitmapImage(byte[] data)
     {
