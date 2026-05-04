@@ -12,31 +12,31 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TabControl x:Name="Tabs" chrome:WindowChrome.IsHitTestVisibleInChrome="True">
+        <TabControl chrome:WindowChrome.IsHitTestVisibleInChrome="True">
             <!-- OCR 设置 -->
             <TabItem Header="OCR">
                 <StackPanel Margin="12">
                     <TextBlock Text="默认 OCR 引擎:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <ComboBox x:Name="OcrEngineComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <ComboBox ItemsSource="{Binding OcrEngineNames}" SelectedItem="{Binding SelectedOcrEngine}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                     <TextBlock Text="PaddleOCR" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock Text="模型路径:" Width="80" VerticalAlignment="Center" />
-                        <TextBox x:Name="PaddleModelPath" Width="280" />
+                        <TextBox Text="{Binding PaddleModelPath}" Width="280" />
                     </StackPanel>
 
                     <TextBlock Text="远程 OCR" FontWeight="SemiBold" Margin="0,8,0,4" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock Text="端点 URL:" Width="80" VerticalAlignment="Center" />
-                        <TextBox x:Name="RemoteOcrEndpoint" Width="280" />
+                        <TextBox Text="{Binding RemoteOcrEndpoint}" Width="280" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock Text="API Key:" Width="80" VerticalAlignment="Center" />
-                        <TextBox x:Name="RemoteOcrApiKey" Width="280" />
+                        <TextBox Text="{Binding RemoteOcrApiKey}" Width="280" />
                     </StackPanel>
 
                     <TextBlock Text="回退引擎:" FontWeight="SemiBold" Margin="0,8,0,4" />
-                    <ComboBox x:Name="OcrFallbackComboBox" Width="200" HorizontalAlignment="Left" />
+                    <ComboBox ItemsSource="{Binding FallbackOptions}" SelectedItem="{Binding SelectedOcrFallback}" Width="200" HorizontalAlignment="Left" />
                 </StackPanel>
             </TabItem>
 
@@ -45,33 +45,33 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12">
                         <TextBlock Text="默认翻译引擎:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                        <ComboBox x:Name="TranslationEngineComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                        <ComboBox ItemsSource="{Binding TranslationEngineNames}" SelectedItem="{Binding SelectedTranslationEngine}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                         <TextBlock Text="DeepL" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="API Key:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="DeepLApiKey" Width="280" />
+                            <TextBox Text="{Binding DeepLApiKey}" Width="280" />
                         </StackPanel>
-                        <CheckBox x:Name="DeepLFreeTier" Content="免费版 (api-free.deepl.com)" Margin="80,0,0,12" />
+                        <CheckBox IsChecked="{Binding DeepLFreeTier}" Content="免费版 (api-free.deepl.com)" Margin="80,0,0,12" />
 
                         <TextBlock Text="百度翻译" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="App ID:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="BaiduAppId" Width="280" />
+                            <TextBox Text="{Binding BaiduAppId}" Width="280" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                             <TextBlock Text="密钥:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="BaiduSecret" Width="280" />
+                            <TextBox Text="{Binding BaiduSecret}" Width="280" />
                         </StackPanel>
 
                         <TextBlock Text="OpenAI" FontWeight="SemiBold" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <TextBlock Text="API Key:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="OpenAIApiKey" Width="280" />
+                            <TextBox Text="{Binding OpenAiApiKey}" Width="280" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                             <TextBlock Text="模型:" Width="80" VerticalAlignment="Center" />
-                            <TextBox x:Name="OpenAIModel" Width="280" />
+                            <TextBox Text="{Binding OpenAiModel}" Width="280" />
                         </StackPanel>
 
                         <TextBlock Text="Microsoft (Bing 翻译)" FontWeight="SemiBold" Margin="0,0,0,4" />
@@ -84,10 +84,10 @@
             <TabItem Header="语言">
                 <StackPanel Margin="12">
                     <TextBlock Text="默认源语言:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <ComboBox x:Name="SourceLanguageComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SourceLanguage}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                     <TextBlock Text="默认目标语言:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <ComboBox x:Name="TargetLanguageComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding TargetLanguage}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
                 </StackPanel>
             </TabItem>
 
@@ -96,11 +96,11 @@
                 <StackPanel Margin="12">
                     <TextBlock Text="截图翻译快捷键:" FontWeight="SemiBold" Margin="0,0,0,4" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <CheckBox x:Name="HotkeyCtrl" Content="Ctrl" Margin="0,0,8,0" />
-                        <CheckBox x:Name="HotkeyAlt" Content="Alt" Margin="0,0,8,0" />
-                        <CheckBox x:Name="HotkeyShift" Content="Shift" Margin="0,0,8,0" />
+                        <CheckBox IsChecked="{Binding HotkeyCtrl}" Content="Ctrl" Margin="0,0,8,0" />
+                        <CheckBox IsChecked="{Binding HotkeyAlt}" Content="Alt" Margin="0,0,8,0" />
+                        <CheckBox IsChecked="{Binding HotkeyShift}" Content="Shift" Margin="0,0,8,0" />
                         <TextBlock Text="+" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <TextBox x:Name="HotkeyKey" Width="40" Text="T" />
+                        <TextBox Text="{Binding HotkeyKey}" Width="40" />
                     </StackPanel>
                 </StackPanel>
             </TabItem>
@@ -109,23 +109,23 @@
             <TabItem Header="其他">
                 <StackPanel Margin="12">
                     <TextBlock Text="日志级别:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <ComboBox x:Name="LogLevelComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding SelectedLogLevel}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                     <TextBlock Text="日志文件路径:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <TextBox x:Name="LogFile" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <TextBox Text="{Binding LogFile}" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                     <TextBlock Text="Python 运行时路径:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <TextBox x:Name="PythonRuntimePath" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <TextBox Text="{Binding PythonRuntimePath}" Width="360" HorizontalAlignment="Left" Margin="0,0,0,12" />
                     <TextBlock Text="留空表示不使用 Python" FontSize="11" />
 
                     <TextBlock Text="主题:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <ComboBox x:Name="ThemeComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                     <TextBlock Text="字号模式:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <ComboBox x:Name="FontSizeModeComboBox" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <ComboBox ItemsSource="{Binding FontModes}" SelectedItem="{Binding SelectedFontMode}" Width="200" HorizontalAlignment="Left" Margin="0,0,0,12" />
 
                     <TextBlock Text="自定义字号:" FontWeight="SemiBold" Margin="0,0,0,4" />
-                    <TextBox x:Name="CustomFontSizeTextBox" Width="100" HorizontalAlignment="Left" Margin="0,0,0,12" />
+                    <TextBox Text="{Binding CustomFontSize}" Width="100" HorizontalAlignment="Left" Margin="0,0,0,12" />
                 </StackPanel>
             </TabItem>
         </TabControl>

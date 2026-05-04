@@ -265,6 +265,7 @@ public partial class App : Application
 
         // 注册覆盖层窗口 ViewModel（Transient 每次创建新实例）
         services.AddTransient<OverlayWindowViewModel>();
+        services.AddTransient<SettingsViewModel>();
 
         // 注册覆盖层窗口（Transient 每次创建新实例）
         services.AddTransient<OverlayWindow>();
