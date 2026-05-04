@@ -259,6 +259,9 @@ public partial class App : Application
         services.AddSingleton<StyleAnalyzer>();
         services.AddSingleton<TextRenderer>();
 
+        // 注册翻译管线服务
+        services.AddSingleton<TranslationPipeline>();
+
         // 注册覆盖层窗口（Transient 每次创建新实例）
         services.AddTransient<OverlayWindow>();
 
