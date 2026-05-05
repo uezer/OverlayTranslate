@@ -5,7 +5,9 @@
         Width="480" Height="380"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
+
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <Style TargetType="Button">
             <Setter Property="MinWidth" Value="100"/>
             <Setter Property="Padding" Value="16,8"/>
@@ -25,26 +27,36 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <TextBlock FontSize="18" FontWeight="Bold">
                 <Run Text="发现新版本 "/>
-                <Run x:Name="VersionRun" Text="v1.0.0"/>
+                <Run Text="{Binding VersionText}"/>
             </TextBlock>
-            <TextBlock x:Name="DateText" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" FontSize="12"/>
+            <TextBlock Text="{Binding DateText}"
+                       Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" FontSize="12"/>
         </StackPanel>
 
         <!-- 更新日志 -->
         <GroupBox Grid.Row="1" Header="更新内容" Padding="0">
             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8">
-                <TextBlock x:Name="ChangelogText" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding ChangelogText}" TextWrapping="Wrap"/>
             </ScrollViewer>
         </GroupBox>
 
         <!-- 下载进度 -->
-        <ProgressBar x:Name="DownloadProgress" Grid.Row="2" Height="24" Margin="0,12,0,0" Visibility="Collapsed"/>
-        <TextBlock x:Name="StatusText" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
+        <ProgressBar Grid.Row="2" Height="24" Margin="0,12,0,0"
+                     Value="{Binding DownloadProgress}"
+                     Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}"/>
+        <TextBlock Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Text="{Binding StatusText}"
+                   Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
         <!-- 按钮 -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button x:Name="UpdateButton" Content="立即更新" IsDefault="True" Click="OnUpdateClick"/>
-            <Button x:Name="SkipButton" Content="稍后提醒" IsCancel="True" Click="OnSkipClick"/>
+            <Button Content="立即更新" IsDefault="True"
+                    Command="{Binding UpdateCommand}"
+                    IsEnabled="{Binding CanUpdate}"/>
+            <Button Content="跳过此版本"
+                    Click="OnSkipVersionClick"/>
+            <Button Content="稍后提醒" IsCancel="True"
+                    Click="OnCancelClick"/>
         </StackPanel>
     </Grid>
 </Window>

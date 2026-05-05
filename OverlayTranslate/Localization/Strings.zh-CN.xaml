@@ -58,7 +58,19 @@
     <!-- 托盘菜单 -->
     <sys:String x:Key="Tray_ScreenshotTranslate">截图翻译</sys:String>
     <sys:String x:Key="Tray_Settings">设置</sys:String>
+    <sys:String x:Key="Tray_CheckUpdate">检查更新</sys:String>
+    <sys:String x:Key="Tray_CheckingUpdate">正在检查更新...</sys:String>
     <sys:String x:Key="Tray_Exit">退出</sys:String>
+
+    <!-- 更新 -->
+    <sys:String x:Key="Update_Title">检查更新</sys:String>
+    <sys:String x:Key="Update_NoUpdate">当前已是最新版本。</sys:String>
+    <sys:String x:Key="Update_CheckFailed">检查更新失败，请检查网络连接。</sys:String>
+    <sys:String x:Key="Update_NoChangelog">暂无更新说明</sys:String>
+    <sys:String x:Key="Update_Downloading">正在下载...</sys:String>
+    <sys:String x:Key="Update_InstallReady">下载完成，即将安装...</sys:String>
+    <sys:String x:Key="Update_Cancelled">下载已取消</sys:String>
+    <sys:String x:Key="Update_DownloadFailed">下载失败: {0}</sys:String>
 
     <!-- MessageBox -->
     <sys:String x:Key="Msg_SettingsSaved_Title">提示</sys:String>

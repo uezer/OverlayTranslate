@@ -1,84 +1,34 @@
 using System.Windows;
-using OverlayTranslate.Services;
+using OverlayTranslate.ViewModels;
 
 namespace OverlayTranslate.Windows;
 
 public partial class UpdateDialog : Window
 {
-    private readonly UpdateService _updateService;
-    private readonly GitHubRelease _release;
-    private CancellationTokenSource? _cts;
+    private readonly UpdateDialogViewModel _viewModel;
 
-    public UpdateDialog(UpdateService updateService, GitHubRelease release)
+    public UpdateDialog(UpdateDialogViewModel viewModel)
     {
-        _updateService = updateService;
-        _release = release;
+        _viewModel = viewModel;
+        DataContext = _viewModel;
         InitializeComponent();
-
-        Title = "发现新版本";
-        VersionRun.Text = $"v{release.TagName.TrimStart('v')}";
-        DateText.Text = release.PublishedAt.ToString("yyyy-MM-dd");
-        ChangelogText.Text = string.IsNullOrWhiteSpace(release.Body)
-            ? "暂无更新说明"
-            : release.Body;
     }
 
-    private async void OnUpdateClick(object sender, RoutedEventArgs e)
+    private void OnSkipVersionClick(object sender, RoutedEventArgs e)
     {
-        UpdateButton.IsEnabled = false;
-        SkipButton.Content = "取消";
-        DownloadProgress.Visibility = Visibility.Visible;
-        StatusText.Visibility = Visibility.Visible;
-        StatusText.Text = "正在下载...";
-
-        _cts = new CancellationTokenSource();
-
-        try
-        {
-            var progress = new Progress<double>(p =>
-            {
-                DownloadProgress.Value = p;
-                StatusText.Text = $"下载中... {p:F0}%";
-            });
-
-            var installerPath = await _updateService.DownloadInstallerAsync(_release, progress, _cts.Token);
-
-            StatusText.Text = "下载完成，即将安装...";
-            await Task.Delay(1000);
-
-            _updateService.LaunchInstallerAndExit(installerPath);
-        }
-        catch (OperationCanceledException)
-        {
-            StatusText.Text = "下载已取消";
-            ResetButtons();
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = $"下载失败: {ex.Message}";
-            ResetButtons();
-        }
-    }
-
-    private void OnSkipClick(object sender, RoutedEventArgs e)
-    {
-        _cts?.Cancel();
+        _viewModel.SkipVersionCommand.Execute(null);
         DialogResult = false;
         Close();
     }
 
-    private void ResetButtons()
+    private void OnCancelClick(object sender, RoutedEventArgs e)
     {
-        UpdateButton.IsEnabled = true;
-        SkipButton.Content = "稍后提醒";
-        DownloadProgress.Visibility = Visibility.Collapsed;
-        StatusText.Visibility = Visibility.Collapsed;
+        _viewModel.CancelCommand.Execute(this);
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        _cts?.Cancel();
-        _cts?.Dispose();
+        _viewModel.Cleanup();
         base.OnClosed(e);
     }
 }

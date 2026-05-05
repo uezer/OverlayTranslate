@@ -283,6 +283,10 @@ public partial class App : Application
         services.AddSingleton<HotkeyManager>();
         services.AddTransient<SettingsWindow>();
         services.AddSingleton<MainWindow>();
+
+        // 注册更新服务
+        services.AddSingleton<UpdateService>();
+        services.AddTransient<UpdateDialogViewModel>();
     }
 
     private async Task CheckForUpdateAsync()
@@ -290,41 +294,99 @@ public partial class App : Application
         try
         {
             var configManager = Services.GetRequiredService<ConfigManager>();
-
-            // 检查是否启用自动更新
             if (!configManager.Settings.Update.AutoCheck)
                 return;
 
-            var httpClient = Services.GetRequiredService<HttpClient>();
-            var updateService = new UpdateService(httpClient);
+            var updateService = Services.GetRequiredService<UpdateService>();
+            var result = await updateService.CheckForUpdateAsync(CancellationToken.None);
 
-            var release = await updateService.CheckForUpdateAsync(CancellationToken.None);
-            if (release == null)
+            if (result.Kind != UpdateCheckResultKind.UpdateAvailable || result.Release == null)
                 return;
 
             // 检查是否跳过此版本
             var skippedVersion = configManager.Settings.Update.SkippedVersion;
             if (!string.IsNullOrEmpty(skippedVersion) &&
-                release.TagName.TrimStart('v') == skippedVersion)
+                result.Release.TagName.TrimStart('v') == skippedVersion)
                 return;
 
-            await Dispatcher.InvokeAsync(() =>
-            {
-                var dialog = new UpdateDialog(updateService, release);
-                dialog.Owner = MainWindow;
-
-                if (dialog.ShowDialog() == false)
-                {
-                    // 用户选择跳过，记录版本号
-                    configManager.Settings.Update.SkippedVersion = release.TagName.TrimStart('v');
-                    configManager.Save();
-                }
-            });
+            await ShowUpdateDialog(result.Release);
         }
         catch (Exception ex)
         {
-            Log.Warning(ex, "检查更新失败");
+            Log.Warning(ex, "自动检查更新失败");
         }
+    }
+
+    /// <summary>
+    /// 从托盘菜单手动触发更新检查，通过气泡通知显示结果，发现更新则弹出 UpdateDialog。
+    /// </summary>
+    public async Task CheckForUpdateFromTrayAsync(
+        Action<string, string, H.NotifyIcon.Core.NotificationIcon>? notify = null)
+    {
+        try
+        {
+            var updateService = Services.GetRequiredService<UpdateService>();
+            var result = await updateService.CheckForUpdateAsync(
+                CancellationToken.None, bypassRateLimit: true);
+
+            switch (result.Kind)
+            {
+                case UpdateCheckResultKind.UpdateAvailable when result.Release != null:
+                    // 检查是否跳过此版本
+                    var configManager = Services.GetRequiredService<ConfigManager>();
+                    var skipped = configManager.Settings.Update.SkippedVersion;
+                    if (!string.IsNullOrEmpty(skipped) &&
+                        result.Release.TagName.TrimStart('v') == skipped)
+                    {
+                        notify?.Invoke(
+                            LocManager.Get("Update_Title"),
+                            LocManager.Get("Update_NoUpdate"),
+                            H.NotifyIcon.Core.NotificationIcon.Info);
+                    }
+                    else
+                    {
+                        await ShowUpdateDialog(result.Release);
+                    }
+                    break;
+
+                case UpdateCheckResultKind.UpToDate:
+                    notify?.Invoke(
+                        LocManager.Get("Update_Title"),
+                        LocManager.Get("Update_NoUpdate"),
+                        H.NotifyIcon.Core.NotificationIcon.Info);
+                    break;
+
+                case UpdateCheckResultKind.Failed:
+                    notify?.Invoke(
+                        LocManager.Get("Update_Title"),
+                        result.ErrorMessage ?? LocManager.Get("Update_CheckFailed"),
+                        H.NotifyIcon.Core.NotificationIcon.Warning);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "手动检查更新失败");
+            notify?.Invoke(
+                LocManager.Get("Update_Title"),
+                LocManager.Get("Update_CheckFailed"),
+                H.NotifyIcon.Core.NotificationIcon.Warning);
+        }
+    }
+
+    private async Task ShowUpdateDialog(GitHubRelease release)
+    {
+        await Dispatcher.InvokeAsync(() =>
+        {
+            var updateService = Services.GetRequiredService<UpdateService>();
+            var configManager = Services.GetRequiredService<ConfigManager>();
+            var viewModel = new UpdateDialogViewModel(updateService, configManager, release);
+            var dialog = new UpdateDialog(viewModel)
+            {
+                Owner = MainWindow
+            };
+            dialog.ShowDialog();
+        });
     }
 
     protected override void OnExit(ExitEventArgs e)

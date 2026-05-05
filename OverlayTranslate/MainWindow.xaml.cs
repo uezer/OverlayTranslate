@@ -36,7 +36,8 @@ public partial class MainWindow : Window
                 }
                 _settingsWindow.Show();
                 _settingsWindow.Activate();
-            });
+            },
+            notify => app.CheckForUpdateFromTrayAsync(notify));
         _trayManager.Initialize();
 
         // 注册全局热键 Ctrl+Shift+T 触发截图翻译

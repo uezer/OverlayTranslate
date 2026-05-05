@@ -58,7 +58,19 @@
     <!-- Tray Menu -->
     <sys:String x:Key="Tray_ScreenshotTranslate">Screenshot Translate</sys:String>
     <sys:String x:Key="Tray_Settings">Settings</sys:String>
+    <sys:String x:Key="Tray_CheckUpdate">Check for Updates</sys:String>
+    <sys:String x:Key="Tray_CheckingUpdate">Checking for updates...</sys:String>
     <sys:String x:Key="Tray_Exit">Exit</sys:String>
+
+    <!-- Update -->
+    <sys:String x:Key="Update_Title">Check for Updates</sys:String>
+    <sys:String x:Key="Update_NoUpdate">You are using the latest version.</sys:String>
+    <sys:String x:Key="Update_CheckFailed">Failed to check for updates. Please check your network connection.</sys:String>
+    <sys:String x:Key="Update_NoChangelog">No changelog available</sys:String>
+    <sys:String x:Key="Update_Downloading">Downloading...</sys:String>
+    <sys:String x:Key="Update_InstallReady">Download complete, installing...</sys:String>
+    <sys:String x:Key="Update_Cancelled">Download cancelled</sys:String>
+    <sys:String x:Key="Update_DownloadFailed">Download failed: {0}</sys:String>
 
     <!-- MessageBox -->
     <sys:String x:Key="Msg_SettingsSaved_Title">Notice</sys:String>
