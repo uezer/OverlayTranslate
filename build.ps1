@@ -37,7 +37,8 @@ if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXIT
 Write-Host "Compiling installer..." -ForegroundColor Cyan
 $isscPaths = @(
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
-    "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+    "${env:ProgramFiles}\Inno Setup 6\ISCC.exe",
+    "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
 )
 $issc = $isscPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $issc) {
