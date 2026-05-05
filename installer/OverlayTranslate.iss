@@ -46,3 +46,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; \
 Filename: "{app}\{#MyAppExeName}"; \
   Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; \
   Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{userappdata}\{#MyAppName}"
